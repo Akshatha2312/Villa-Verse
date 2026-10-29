@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <a href="{{ url_for('villas.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2">
+        <i class="bi bi-arrow-left"></i> Cancel
+      </a>
+      <h2 class="h4 fw-bold mb-0 text-forest">{{ title }}</h2>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <!-- Villa ID & Plot Number -->
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.villa_id.label }}</label>
+              {{ form.villa_id(class="form-control" + (" is-invalid" if form.villa_id.errors else ""), placeholder="e.g. V-101", readonly=is_edit) }}
+              {% for error in form.villa_id.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+              <div class="form-text small">Unique community villa identifier.</div>
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.plot_number.label }}</label>
+              {{ form.plot_number(class="form-control" + (" is-invalid" if form.plot_number.errors else ""), placeholder="e.g. PL-101") }}
+              {% for error in form.plot_number.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+              <div class="form-text small">Master plot cadastre registration.</div>
+            </div>
+
+            <!-- Architectural Type & Status -->
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.villa_type.label }}</label>
+              {{ form.villa_type(class="form-select" + (" is-invalid" if form.villa_type.errors else "")) }}
+              {% for error in form.villa_type.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.status.label }}</label>
+              {{ form.status(class="form-select" + (" is-invalid" if form.status.errors else "")) }}
+              {% for error in form.status.errors %}
+                <div class="invalid-feedback">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <!-- Built-up Area & Garden Area -->
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.built_up_area.label }}</label>
+              <div class="input-group">
+                {{ form.built_up_area(class="form-control" + (" is-invalid" if form.built_up_area.errors else ""), placeholder="e.g. 4200") }}
+                <span class="input-group-text">sq. ft.</span>
+              </div>
+              {% for error in form.built_up_area.errors %}
+                <div class="invalid-feedback d-block">{{ error }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.garden_area_sqft.label }}</label>
+              <div class="input-group">
+                {{ form.garden_area_sqft(class="form-control" + (" is-invalid" if form.garden_area_sqft.errors else ""), placeholder="e.g. 1500") }}
+                <span class="input-group-text">sq. ft.</span>
+              </div>
+            </div>
+
+            <!-- Rooms, Baths, Stories, Parking -->
+            <div class="col-6 col-sm-3">
+              <label class="form-label small fw-bold text-secondary">{{ form.bedrooms.label }}</label>
+              {{ form.bedrooms(class="form-control" + (" is-invalid" if form.bedrooms.errors else "")) }}
+            </div>
+
+            <div class="col-6 col-sm-3">
+              <label class="form-label small fw-bold text-secondary">{{ form.bathrooms.label }}</label>
+              {{ form.bathrooms(class="form-control" + (" is-invalid" if form.bathrooms.errors else "")) }}
+            </div>
+
+            <div class="col-6 col-sm-3">
+              <label class="form-label small fw-bold text-secondary">{{ form.stories.label }}</label>
+              {{ form.stories(class="form-control" + (" is-invalid" if form.stories.errors else "")) }}
+            </div>
+
+            <div class="col-6 col-sm-3">
+              <label class="form-label small fw-bold text-secondary">{{ form.parking_slots.label }}</label>
+              {{ form.parking_slots(class="form-control" + (" is-invalid" if form.parking_slots.errors else "")) }}
+            </div>
+
+            <!-- Checkbox: Private Swimming Pool -->
+            <div class="col-12">
+              <div class="form-check form-switch mt-2">
+                {{ form.has_private_pool(class="form-check-input", id="poolSwitch") }}
+                <label class="form-check-label fw-semibold" for="poolSwitch">Property includes Private Swimming Pool</label>
+              </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.notes.label }}</label>
+              {{ form.notes(class="form-control", rows=3, placeholder="Special features, garden orientation, architectural notes...") }}
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+              <a href="{{ url_for('villas.index') }}" class="btn btn-outline-secondary">Cancel</a>
+              {{ form.submit(class="btn btn-forest px-4") }}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

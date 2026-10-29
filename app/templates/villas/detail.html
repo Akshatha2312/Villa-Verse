@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Villa {{ villa.villa_id }} Details{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a href="{{ url_for('villas.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Directory</a>
+      <span class="badge {{ villa.status_badge_class }}">{{ villa.status }}</span>
+      {% if villa.has_private_pool %}
+        <span class="badge bg-primary bg-opacity-10 text-primary border"><i class="bi bi-water me-1"></i>Private Pool</span>
+      {% endif %}
+    </div>
+    <h2 class="h3 fw-bold mb-0 text-forest">Villa {{ villa.villa_id }} <span class="text-muted fw-normal fs-5">(Plot: {{ villa.plot_number }})</span></h2>
+    <div class="text-secondary small">{{ villa.villa_type }}</div>
+  </div>
+
+  <div class="d-flex align-items-center gap-2">
+    <a href="{{ url_for('villas.edit', villa_id=villa.id) }}" class="btn btn-outline-forest btn-sm">
+      <i class="bi bi-pencil me-1"></i> Edit Villa
+    </a>
+    <a href="{{ url_for('residents.assign', villa_id=villa.id) }}" class="btn btn-forest btn-sm">
+      <i class="bi bi-person-plus me-1"></i> Assign Occupant
+    </a>
+  </div>
+</div>
+
+<!-- Specs and Overview Cards -->
+<div class="row g-4 mb-4">
+  <!-- Villa Specifications -->
+  <div class="col-12 col-lg-7">
+    <div class="surface-card h-100 mb-0">
+      <div class="surface-card-header">
+        <h3 class="surface-card-title">
+          <i class="bi bi-info-circle text-forest"></i> Property Specifications
+        </h3>
+        <span class="small text-muted">Metric: {{ villa.area_sqm }} m&sup2;</span>
+      </div>
+      <div class="surface-card-body">
+        <div class="row g-3">
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Built-up Area</div>
+            <div class="fw-bold fs-6">{{ villa.built_up_area | int }} sq. ft.</div>
+          </div>
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Bedrooms</div>
+            <div class="fw-bold fs-6">{{ villa.bedrooms }} Suites</div>
+          </div>
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Bathrooms</div>
+            <div class="fw-bold fs-6">{{ villa.bathrooms }} Baths</div>
+          </div>
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Stories / Floors</div>
+            <div class="fw-bold fs-6">{{ villa.stories }} Levels</div>
+          </div>
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Parking Slots</div>
+            <div class="fw-bold fs-6">{{ villa.parking_slots }} Covered bays</div>
+          </div>
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Garden Area</div>
+            <div class="fw-bold fs-6">{{ villa.garden_area_sqft | int }} sq. ft.</div>
+          </div>
+        </div>
+
+        {% if villa.notes %}
+          <div class="mt-3 pt-3 border-top">
+            <div class="small text-muted mb-1">Property Remarks:</div>
+            <p class="small mb-0 text-dark">{{ villa.notes }}</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Financial & Maintenance Summary for this Villa -->
+  <div class="col-12 col-lg-5">
+    <div class="surface-card h-100 mb-0">
+      <div class="surface-card-header">
+        <h3 class="surface-card-title">
+          <i class="bi bi-wallet2 text-forest"></i> Estate Status Summary
+        </h3>
+      </div>
+      <div class="surface-card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+          <div>
+            <div class="small text-muted">Outstanding Balance</div>
+            <div class="h4 fw-bold {% if villa.outstanding_balance > 0 %}text-danger{% else %}text-success{% endif %} mb-0">
+              {{ villa.outstanding_balance | currency }}
+            </div>
+          </div>
+          {% if villa.fee_charges %}
+            <a href="{{ url_for('finance.index', q=villa.villa_id) }}" class="btn btn-sm btn-outline-secondary">View Invoices</a>
+          {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="small text-muted">Active Work Orders</div>
+            <div class="h4 fw-bold {% if villa.active_maintenance_count > 0 %}text-danger{% else %}text-success{% endif %} mb-0">
+              {{ villa.active_maintenance_count }} Open
+            </div>
+          </div>
+          <a href="{{ url_for('maintenance.create', villa_id=villa.id) }}" class="btn btn-sm btn-outline-forest">
+            <i class="bi bi-tools me-1"></i> Log Ticket
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Occupancy Management Section -->
+<div class="surface-card mb-4">
+  <div class="surface-card-header">
+    <h3 class="surface-card-title">
+      <i class="bi bi-people text-forest"></i> Registered Residents & Ownership
+    </h3>
+    <a href="{{ url_for('residents.assign', villa_id=villa.id) }}" class="btn btn-sm btn-outline-forest">
+      <i class="bi bi-plus-lg me-1"></i> Add Occupant
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Member Name</th>
+          <th>Role</th>
+          <th>Primary Contact</th>
+          <th>Move-in Date</th>
+          <th>Move-out Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for occ in villa.occupancies %}
+          <tr>
+            <td>
+              <a href="{{ url_for('residents.detail', member_id=occ.member.id) }}" class="fw-semibold text-decoration-none">
+                {{ occ.member.full_name }}
+              </a>
+              <div class="small text-muted">{{ occ.member.email }} &bull; {{ occ.member.phone }}</div>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ occ.role }}</span></td>
+            <td>
+              {% if occ.is_primary %}
+                <span class="badge bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle-fill me-1"></i>Primary</span>
+              {% else %}
+                <span class="text-muted small">&mdash;</span>
+              {% endif %}
+            </td>
+            <td>{{ occ.move_in_date.strftime('%b %d, %Y') }}</td>
+            <td>{{ occ.move_out_date.strftime('%b %d, %Y') if occ.move_out_date else 'Present' }}</td>
+            <td>
+              {% if occ.is_active %}
+                <span class="badge bg-success bg-opacity-10 text-success">Active Occupant</span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary">Historical Record</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if occ.is_active %}
+                <form action="{{ url_for('residents.vacate', occupancy_id=occ.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Confirm vacating {{ occ.member.full_name }} from Villa {{ villa.villa_id }}?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">Vacate</button>
+                </form>
+              {% else %}
+                <span class="text-muted small">Archived</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-4 text-muted">
+              No occupants registered for this villa yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Maintenance Work Orders for this Villa -->
+<div class="surface-card mb-4">
+  <div class="surface-card-header">
+    <h3 class="surface-card-title">
+      <i class="bi bi-wrench text-forest"></i> Maintenance History
+    </h3>
+    <a href="{{ url_for('maintenance.create', villa_id=villa.id) }}" class="btn btn-sm btn-outline-forest">
+      <i class="bi bi-plus-lg me-1"></i> New Request
+    </a>
+  </div>
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Ticket</th>
+          <th>Category</th>
+          <th>Summary</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Cost</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ticket in villa.maintenance_requests %}
+          <tr>
+            <td class="fw-bold">
+              <a href="{{ url_for('maintenance.detail', ticket_id=ticket.id) }}" class="text-decoration-none">
+                {{ ticket.ticket_number }}
+              </a>
+            </td>
+            <td>{{ ticket.category }}</td>
+            <td>{{ ticket.title }}</td>
+            <td><span class="badge {{ ticket.priority_badge_class }}">{{ ticket.priority }}</span></td>
+            <td><span class="badge {{ ticket.status_badge_class }}">{{ ticket.status }}</span></td>
+            <td>{{ ticket.cost | currency }}</td>
+            <td class="small text-muted">{{ ticket.reported_date.strftime('%b %d, %Y') }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-4 text-muted">
+              No maintenance work orders logged for Villa {{ villa.villa_id }}.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Community Fee Invoices for this Villa -->
+<div class="surface-card mb-0">
+  <div class="surface-card-header">
+    <h3 class="surface-card-title">
+      <i class="bi bi-receipt text-forest"></i> Community Dues Ledger
+    </h3>
+  </div>
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Invoice</th>
+          <th>Period</th>
+          <th>Billed Amount</th>
+          <th>Paid Amount</th>
+          <th>Balance</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for charge in villa.fee_charges %}
+          <tr>
+            <td class="fw-bold">{{ charge.invoice_number }}</td>
+            <td>{{ charge.period_month }}</td>
+            <td>{{ charge.amount | currency }}</td>
+            <td class="text-success">{{ charge.total_paid | currency }}</td>
+            <td class="fw-bold {% if charge.balance > 0 %}text-danger{% else %}text-muted{% endif %}">
+              {{ charge.balance | currency }}
+            </td>
+            <td><span class="badge {{ charge.status_badge_class }}">{{ charge.status }}</span></td>
+            <td>
+              {% if charge.balance > 0 %}
+                <a href="{{ url_for('finance.record_payment', charge_id=charge.id) }}" class="btn btn-sm btn-gold py-0 px-2">
+                  Record Payment
+                </a>
+              {% else %}
+                <span class="text-success small"><i class="bi bi-check2-circle me-1"></i>Settled</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-4 text-muted">
+              No fee invoices issued for this villa yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

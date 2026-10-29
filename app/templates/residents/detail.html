@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}{{ member.full_name }} Profile{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a href="{{ url_for('residents.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Directory</a>
+      <span class="badge {{ member.get_badge_class() }}">{{ member.get_role_label() }}</span>
+      {% if member.can_vote_in_agm() %}
+        <span class="badge bg-success bg-opacity-10 text-success"><i class="bi bi-check-circle me-1"></i>AGM Voter</span>
+      {% endif %}
+    </div>
+    <h2 class="h3 fw-bold mb-0 text-forest">{{ member.full_name }}</h2>
+    <div class="text-muted small">Registered Community Member &bull; ID: #{{ member.id }}</div>
+  </div>
+
+  <div>
+    <a href="{{ url_for('residents.assign', member_id=member.id) }}" class="btn btn-forest btn-sm">
+      <i class="bi bi-key me-1"></i> Assign to Villa
+    </a>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Profile Information -->
+  <div class="col-12 col-md-5">
+    <div class="surface-card h-100 mb-0">
+      <div class="surface-card-header">
+        <h3 class="surface-card-title">
+          <i class="bi bi-person-badge text-forest"></i> Member Information
+        </h3>
+      </div>
+      <div class="surface-card-body">
+        <div class="mb-3">
+          <div class="small text-muted">Email Address</div>
+          <div class="fw-semibold">{{ member.email }}</div>
+        </div>
+        <div class="mb-3">
+          <div class="small text-muted">Phone Number</div>
+          <div class="fw-semibold">{{ member.phone }}</div>
+        </div>
+
+        {% if member.member_type == 'owner' %}
+          <div class="mb-3">
+            <div class="small text-muted">Deed / Property Title Number</div>
+            <div class="fw-semibold">{{ member.deed_number or 'Not specified' }}</div>
+          </div>
+          {% if member.emergency_contact %}
+            <div class="mb-3">
+              <div class="small text-muted">Emergency Contact</div>
+              <div class="fw-semibold">{{ member.emergency_contact }}</div>
+            </div>
+          {% endif %}
+        {% elif member.member_type == 'resident' %}
+          <div class="mb-3">
+            <div class="small text-muted">Lease Period</div>
+            <div class="fw-semibold">
+              {{ member.lease_start_date.strftime('%b %d, %Y') if member.lease_start_date else 'Flexible' }} 
+              &mdash; 
+              {{ member.lease_end_date.strftime('%b %d, %Y') if member.lease_end_date else 'Indefinite' }}
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="small text-muted">Lease Status</div>
+            <div>
+              {% if member.is_lease_active() %}
+                <span class="badge bg-success bg-opacity-10 text-success">Active Tenancy</span>
+              {% else %}
+                <span class="badge bg-danger bg-opacity-10 text-danger">Lease Concluded</span>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="pt-3 border-top small text-muted">
+          Registered on {{ member.created_at.strftime('%b %d, %Y') }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Associated Estates -->
+  <div class="col-12 col-md-7">
+    <div class="surface-card h-100 mb-0">
+      <div class="surface-card-header">
+        <h3 class="surface-card-title">
+          <i class="bi bi-houses text-forest"></i> Associated Estates (History & Current)
+        </h3>
+      </div>
+      <div class="table-responsive">
+        <table class="table-custom">
+          <thead>
+            <tr>
+              <th>Villa</th>
+              <th>Role</th>
+              <th>Move-in</th>
+              <th>Move-out</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for occ in member.occupancies %}
+              <tr>
+                <td>
+                  <a href="{{ url_for('villas.detail', villa_id=occ.villa.id) }}" class="fw-bold text-decoration-none">
+                    {{ occ.villa.villa_id }} (Plot {{ occ.villa.plot_number }})
+                  </a>
+                </td>
+                <td><span class="badge bg-light text-dark border">{{ occ.role }}</span></td>
+                <td>{{ occ.move_in_date.strftime('%b %d, %Y') }}</td>
+                <td>{{ occ.move_out_date.strftime('%b %d, %Y') if occ.move_out_date else 'Current' }}</td>
+                <td>
+                  {% if occ.is_active %}
+                    <span class="badge bg-success bg-opacity-10 text-success">Active</span>
+                  {% else %}
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary">Past</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted small">
+                  No estate assignments linked to this member yet.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

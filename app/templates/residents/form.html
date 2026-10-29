@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <a href="{{ url_for('residents.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Cancel</a>
+      <h2 class="h4 fw-bold mb-0 text-forest">{{ title }}</h2>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.first_name.label }}</label>
+              {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else ""), placeholder="First Name") }}
+              {% for err in form.first_name.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.last_name.label }}</label>
+              {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else ""), placeholder="Last Name") }}
+              {% for err in form.last_name.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.email.label }}</label>
+              {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="e.g. name@domain.com") }}
+              {% for err in form.email.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.phone.label }}</label>
+              {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="+1 (555) 000-0000") }}
+              {% for err in form.phone.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            {% if member_type == 'owner' %}
+              <div class="col-12">
+                <label class="form-label small fw-bold text-secondary">{{ form.deed_number.label }}</label>
+                {{ form.deed_number(class="form-control", placeholder="e.g. DEED-2024-EP-0089") }}
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-bold text-secondary">{{ form.emergency_contact.label }}</label>
+                {{ form.emergency_contact(class="form-control", placeholder="Name & contact phone") }}
+              </div>
+            {% elif member_type == 'resident' %}
+              <div class="col-6">
+                <label class="form-label small fw-bold text-secondary">{{ form.lease_start_date.label }}</label>
+                {{ form.lease_start_date(class="form-control", type="date") }}
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-bold text-secondary">{{ form.lease_end_date.label }}</label>
+                {{ form.lease_end_date(class="form-control", type="date") }}
+              </div>
+              <div class="col-12">
+                <div class="form-check form-switch mt-2">
+                  {{ form.is_primary_tenant(class="form-check-input", id="primaryTenantSwitch") }}
+                  <label class="form-check-label fw-semibold" for="primaryTenantSwitch">Primary Contract Signatory</label>
+                </div>
+              </div>
+            {% endif %}
+
+            <div class="col-12 d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+              <a href="{{ url_for('residents.index') }}" class="btn btn-outline-secondary">Cancel</a>
+              {{ form.submit(class="btn btn-forest px-4") }}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Log Maintenance Work Order{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <a href="{{ url_for('maintenance.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Cancel</a>
+      <h2 class="h4 fw-bold mb-0 text-forest">Log Maintenance Request</h2>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.villa_id.label }}</label>
+              {{ form.villa_id(class="form-select" + (" is-invalid" if form.villa_id.errors else "")) }}
+              {% for err in form.villa_id.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.category.label }}</label>
+              {{ form.category(class="form-select" + (" is-invalid" if form.category.errors else "")) }}
+              {% for err in form.category.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.title.label }}</label>
+              {{ form.title(class="form-control" + (" is-invalid" if form.title.errors else ""), placeholder="Brief summary e.g. Main pool pump filter failure") }}
+              {% for err in form.title.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.description.label }}</label>
+              {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=4, placeholder="Detailed description of issue, specific location, urgency notes...") }}
+              {% for err in form.description.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.priority.label }}</label>
+              {{ form.priority(class="form-select") }}
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.assigned_to.label }}</label>
+              {{ form.assigned_to(class="form-control", placeholder="e.g. Apex Electrical Services") }}
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+              <a href="{{ url_for('maintenance.index') }}" class="btn btn-outline-secondary">Cancel</a>
+              {{ form.submit(class="btn btn-forest px-4") }}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

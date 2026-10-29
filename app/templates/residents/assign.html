@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Assign Occupant to Villa{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <a href="{{ url_for('residents.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Cancel</a>
+      <h2 class="h4 fw-bold mb-0 text-forest">Assign Occupant to Villa</h2>
+    </div>
+
+    <div class="surface-card">
+      <div class="surface-card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.villa_id.label }}</label>
+              {{ form.villa_id(class="form-select" + (" is-invalid" if form.villa_id.errors else "")) }}
+              {% for err in form.villa_id.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.member_id.label }}</label>
+              {{ form.member_id(class="form-select" + (" is-invalid" if form.member_id.errors else "")) }}
+              {% for err in form.member_id.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.role.label }}</label>
+              {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
+            </div>
+
+            <div class="col-12 col-sm-6">
+              <label class="form-label small fw-bold text-secondary">{{ form.move_in_date.label }}</label>
+              {{ form.move_in_date(class="form-control", type="date") }}
+            </div>
+
+            <div class="col-12">
+              <div class="form-check form-switch">
+                {{ form.is_primary(class="form-check-input", id="primaryContactSwitch") }}
+                <label class="form-check-label fw-semibold" for="primaryContactSwitch">Designate as Primary Point of Contact for Villa</label>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.notes.label }}</label>
+              {{ form.notes(class="form-control", rows=2, placeholder="Tenancy terms, parking allocation, keys handed over...") }}
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+              <a href="{{ url_for('residents.index') }}" class="btn btn-outline-secondary">Cancel</a>
+              {{ form.submit(class="btn btn-forest px-4") }}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

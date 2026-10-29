@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Residents & Owners Directory{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <h2 class="h3 fw-bold mb-1 text-forest">Community Members</h2>
+    <p class="text-secondary mb-0 small">Registered property owners, leaseholders, and resident occupants of {{ community_name }}.</p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <a href="{{ url_for('residents.assign') }}" class="btn btn-outline-forest btn-sm">
+      <i class="bi bi-key me-1"></i> Assign Villa
+    </a>
+    <a href="{{ url_for('residents.new_owner') }}" class="btn btn-gold btn-sm">
+      <i class="bi bi-plus-lg me-1"></i> Add Owner
+    </a>
+    <a href="{{ url_for('residents.new_resident') }}" class="btn btn-forest btn-sm">
+      <i class="bi bi-plus-lg me-1"></i> Add Tenant
+    </a>
+  </div>
+</div>
+
+<!-- Quick Stat Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="metric-card accent-gold">
+      <div class="metric-label">Property Owners</div>
+      <div class="metric-value">{{ total_owners }}</div>
+      <div class="metric-meta text-muted">AGM Voting Members</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="metric-card accent-forest">
+      <div class="metric-label">Resident Tenants</div>
+      <div class="metric-value">{{ total_residents }}</div>
+      <div class="metric-meta text-muted">Active Community Lessees</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-6">
+    <div class="filter-bar h-100 d-flex align-items-center mb-0">
+      <form method="GET" action="{{ url_for('residents.index') }}" class="row g-2 w-100 align-items-center">
+        <div class="col-12 col-sm-6">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" class="form-control border-start-0" placeholder="Search members..." value="{{ search_query }}">
+          </div>
+        </div>
+        <div class="col-8 col-sm-4">
+          <select name="type" class="form-select form-select-sm">
+            <option value="">All Member Roles</option>
+            <option value="owner" {% if member_type == 'owner' %}selected{% endif %}>Property Owners</option>
+            <option value="resident" {% if member_type == 'resident' %}selected{% endif %}>Resident Tenants</option>
+          </select>
+        </div>
+        <div class="col-4 col-sm-2">
+          <button type="submit" class="btn btn-sm btn-forest w-100">Filter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Members Table -->
+<div class="surface-card mb-4">
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role (Polymorphic)</th>
+          <th>Contact Information</th>
+          <th>Associated Villa(s)</th>
+          <th>AGM Voting Rights</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in members %}
+          <tr>
+            <td>
+              <a href="{{ url_for('residents.detail', member_id=member.id) }}" class="fw-bold text-forest text-decoration-none">
+                {{ member.full_name }}
+              </a>
+              {% if member.member_type == 'owner' and member.deed_number %}
+                <div class="text-muted" style="font-size: 0.72rem;">Deed: {{ member.deed_number }}</div>
+              {% endif %}
+            </td>
+            <td>
+              <!-- Polymorphic role badge and label -->
+              <span class="badge {{ member.get_badge_class() }}">{{ member.get_role_label() }}</span>
+            </td>
+            <td>
+              <div><i class="bi bi-envelope text-muted me-1"></i>{{ member.email }}</div>
+              <div class="small text-muted"><i class="bi bi-telephone text-muted me-1"></i>{{ member.phone }}</div>
+            </td>
+            <td>
+              {% set active_villas = member.occupancies | selectattr('is_active') | list %}
+              {% if active_villas %}
+                {% for occ in active_villas %}
+                  <a href="{{ url_for('villas.detail', villa_id=occ.villa.id) }}" class="badge bg-light text-forest border text-decoration-none">
+                    <i class="bi bi-house-door me-1"></i>{{ occ.villa.villa_id }} ({{ occ.role }})
+                  </a>
+                {% endfor %}
+              {% else %}
+                <span class="text-muted small">No active villa assignment</span>
+              {% endif %}
+            </td>
+            <td>
+              <!-- Polymorphic AGM voting check -->
+              {% if member.can_vote_in_agm() %}
+                <span class="badge bg-success bg-opacity-10 text-success"><i class="bi bi-check2-circle me-1"></i>Eligible</span>
+              {% else %}
+                <span class="badge bg-secondary bg-opacity-10 text-secondary">Non-Voting</span>
+              {% endif %}
+            </td>
+            <td>
+              <a href="{{ url_for('residents.detail', member_id=member.id) }}" class="btn btn-sm btn-outline-forest py-0 px-2">
+                Profile
+              </a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="6" class="text-center py-5 text-muted">
+              No community members found matching the criteria.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+  <nav aria-label="Members pagination" class="d-flex justify-content-between align-items-center">
+    <div class="small text-muted">Showing page {{ page }} of {{ total_pages }} ({{ total_count }} total members)</div>
+    <ul class="pagination pagination-custom mb-0">
+      {% if page > 1 %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('residents.index', page=page-1, q=search_query, type=member_type) }}">Previous</a></li>
+      {% endif %}
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page or (p >= page - 2 and p <= page + 2) %}
+          <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('residents.index', page=p, q=search_query, type=member_type) }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      {% if page < total_pages %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('residents.index', page=page+1, q=search_query, type=member_type) }}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}

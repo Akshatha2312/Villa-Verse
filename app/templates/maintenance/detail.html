@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket {{ req.ticket_number }} Details{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a href="{{ url_for('maintenance.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Work Orders</a>
+      <span class="badge {{ req.priority_badge_class }}">{{ req.priority }} Priority</span>
+      <span class="badge {{ req.status_badge_class }}">{{ req.status }}</span>
+      {% if req.is_overdue %}
+        <span class="badge bg-danger text-white">SLA Breached / Overdue</span>
+      {% endif %}
+    </div>
+    <h2 class="h3 fw-bold mb-0 text-forest">{{ req.ticket_number }}: {{ req.title }}</h2>
+    <div class="text-secondary small">Associated with Villa <strong>{{ req.villa.villa_id }}</strong> (Plot: {{ req.villa.plot_number }}) &bull; Category: {{ req.category }}</div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Ticket Details -->
+  <div class="col-12 col-lg-7">
+    <div class="surface-card mb-4">
+      <div class="surface-card-header">
+        <h3 class="surface-card-title">
+          <i class="bi bi-file-text text-forest"></i> Issue Specification
+        </h3>
+      </div>
+      <div class="surface-card-body">
+        <div class="mb-4">
+          <div class="small text-muted fw-bold mb-1">Issue Description:</div>
+          <p class="text-dark bg-light p-3 rounded border small mb-0">{{ req.description }}</p>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Reported Date</div>
+            <div class="fw-semibold small">{{ req.reported_date.strftime('%b %d, %Y %H:%M') }}</div>
+          </div>
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Assigned Contractor</div>
+            <div class="fw-semibold small text-primary">{{ req.assigned_to or 'Unassigned' }}</div>
+          </div>
+          <div class="col-6 col-sm-4">
+            <div class="small text-muted">Recorded Expense</div>
+            <div class="fw-semibold small text-forest">{{ req.cost | currency }}</div>
+          </div>
+        </div>
+
+        {% if req.resolution_notes %}
+          <div class="mt-4 pt-3 border-top">
+            <div class="small text-muted fw-bold mb-1">Resolution / Inspection Notes:</div>
+            <div class="p-3 bg-success bg-opacity-10 border border-success border-opacity-25 rounded small text-dark">
+              {{ req.resolution_notes }}
+            </div>
+            {% if req.resolved_date %}
+              <div class="text-muted mt-1" style="font-size: 0.72rem;">Resolved on {{ req.resolved_date.strftime('%b %d, %Y at %H:%M') }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Lifecycle & Resolution Update Form -->
+  <div class="col-12 col-lg-5">
+    <div class="surface-card mb-4">
+      <div class="surface-card-header">
+        <h3 class="surface-card-title">
+          <i class="bi bi-sliders text-forest"></i> Update Status & Closure
+        </h3>
+      </div>
+      <div class="surface-card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-secondary">{{ form.status.label }}</label>
+            {{ form.status(class="form-select") }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-secondary">{{ form.assigned_to.label }}</label>
+            {{ form.assigned_to(class="form-control", placeholder="e.g. Apex Electrical Services") }}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-secondary">{{ form.cost.label }}</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              {{ form.cost(class="form-control", placeholder="0.00") }}
+            </div>
+            <div class="form-text small">Enter repair or contractor charge incurred by the estate.</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold text-secondary">{{ form.resolution_notes.label }}</label>
+            {{ form.resolution_notes(class="form-control", rows=3, placeholder="Describe work done, parts replaced, contractor report...") }}
+          </div>
+
+          <div class="d-grid mt-4">
+            {{ form.submit(class="btn btn-forest") }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

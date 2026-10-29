@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Operating Expenses Ledger{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a href="{{ url_for('finance.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Community Dues</a>
+    </div>
+    <h2 class="h3 fw-bold mb-1 text-forest">Community Operating Expenses</h2>
+    <p class="text-secondary mb-0 small">Ledger of community infrastructure maintenance, security, landscaping, and operational costs.</p>
+  </div>
+  <div>
+    <button class="btn btn-forest" data-bs-toggle="collapse" data-bs-target="#newExpenseCollapse" aria-expanded="false" aria-controls="newExpenseCollapse">
+      <i class="bi bi-plus-lg me-1"></i> Record New Expense
+    </button>
+  </div>
+</div>
+
+<!-- Add Expense Collapse Form -->
+<div class="collapse mb-4" id="newExpenseCollapse">
+  <div class="surface-card border-forest">
+    <div class="surface-card-header bg-light">
+      <h3 class="surface-card-title fs-6">
+        <i class="bi bi-receipt text-forest"></i> Add Operational Expense Record
+      </h3>
+    </div>
+    <div class="surface-card-body p-4">
+      <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <label class="form-label small fw-bold text-secondary">{{ form.category.label }}</label>
+            {{ form.category(class="form-select") }}
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label small fw-bold text-secondary">{{ form.title.label }}</label>
+            {{ form.title(class="form-control", placeholder="e.g. Monthly Perimeter Security Service") }}
+          </div>
+
+          <div class="col-12 col-sm-4">
+            <label class="form-label small fw-bold text-secondary">{{ form.amount.label }}</label>
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              {{ form.amount(class="form-control", placeholder="0.00") }}
+            </div>
+          </div>
+
+          <div class="col-12 col-sm-4">
+            <label class="form-label small fw-bold text-secondary">{{ form.vendor_name.label }}</label>
+            {{ form.vendor_name(class="form-control", placeholder="Vendor / Company name") }}
+          </div>
+
+          <div class="col-12 col-sm-4">
+            <label class="form-label small fw-bold text-secondary">{{ form.expense_date.label }}</label>
+            {{ form.expense_date(class="form-control", type="date") }}
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label small fw-bold text-secondary">{{ form.receipt_reference.label }}</label>
+            {{ form.receipt_reference(class="form-control", placeholder="e.g. VEND-INV-9921") }}
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label small fw-bold text-secondary">{{ form.description.label }}</label>
+            {{ form.description(class="form-control", rows=1, placeholder="Additional remarks or work description") }}
+          </div>
+
+          <div class="col-12 d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
+            <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#newExpenseCollapse">Cancel</button>
+            {{ form.submit(class="btn btn-sm btn-forest px-4") }}
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Total Incurred Summary Card -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-4">
+    <div class="metric-card accent-rose">
+      <div class="metric-label">Total Community Expenditure</div>
+      <div class="metric-value text-danger">{{ total_expense_sum | currency }}</div>
+      <div class="metric-meta text-muted">Cumulative Operational Disbursals</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-8">
+    <div class="filter-bar h-100 d-flex align-items-center mb-0">
+      <form method="GET" action="{{ url_for('finance.expenses') }}" class="row g-2 w-100 align-items-center">
+        <div class="col-8 col-sm-9">
+          <select name="category" class="form-select form-select-sm">
+            <option value="">All Operational Categories</option>
+            {% for cat in categories %}
+              <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-4 col-sm-3">
+          <button type="submit" class="btn btn-sm btn-forest w-100">Filter Ledger</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Expenses Table -->
+<div class="surface-card mb-4">
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr>
+          <th>Ref Code</th>
+          <th>Category</th>
+          <th>Title & Scope</th>
+          <th>Vendor</th>
+          <th>Disbursed Amount</th>
+          <th>Invoice Ref</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exp in expenses %}
+          <tr>
+            <td class="fw-bold">{{ exp.expense_number }}</td>
+            <td><span class="badge bg-light text-dark border">{{ exp.category }}</span></td>
+            <td>
+              <div class="fw-semibold text-dark">{{ exp.title }}</div>
+              {% if exp.description %}
+                <div class="small text-muted text-truncate" style="max-width: 280px;">{{ exp.description }}</div>
+              {% endif %}
+            </td>
+            <td>{{ exp.vendor_name }}</td>
+            <td class="fw-bold text-danger">{{ exp.amount | currency }}</td>
+            <td class="small text-muted">{{ exp.receipt_reference or 'N/A' }}</td>
+            <td class="small text-muted">{{ exp.expense_date.strftime('%b %d, %Y') }}</td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="7" class="text-center py-5 text-muted">
+              No operating expenses recorded yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+  <nav aria-label="Expenses pagination" class="d-flex justify-content-between align-items-center">
+    <div class="small text-muted">Showing page {{ page }} of {{ total_pages }} ({{ total_count }} total expenses)</div>
+    <ul class="pagination pagination-custom mb-0">
+      {% if page > 1 %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('finance.expenses', page=page-1, category=category_filter) }}">Previous</a></li>
+      {% endif %}
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page or (p >= page - 2 and p <= page + 2) %}
+          <li class="page-item {% if p == page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('finance.expenses', page=p, category=category_filter) }}">{{ p }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+      {% if page < total_pages %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('finance.expenses', page=page+1, category=category_filter) }}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+{% endif %}
+{% endblock %}

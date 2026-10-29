@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Record Payment - {{ charge.invoice_number }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <a href="{{ url_for('finance.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Cancel</a>
+      <h2 class="h4 fw-bold mb-0 text-forest">Record Community Dues Payment</h2>
+    </div>
+
+    <!-- Invoice Summary Box -->
+    <div class="surface-card mb-4">
+      <div class="surface-card-body p-4 bg-light">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small text-muted fw-bold">Invoice Reference:</span>
+          <span class="fw-bold text-forest">{{ charge.invoice_number }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small text-muted fw-bold">Villa:</span>
+          <span class="fw-semibold">Villa {{ charge.villa.villa_id }} (Plot {{ charge.villa.plot_number }})</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small text-muted fw-bold">Billing Month:</span>
+          <span>{{ charge.period_month }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="small text-muted fw-bold">Total Invoiced:</span>
+          <span>{{ charge.amount | currency }}</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+          <span class="fw-bold text-dark">Remaining Balance:</span>
+          <span class="h5 fw-bold text-danger mb-0">{{ charge.balance | currency }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Recording Form -->
+    <div class="surface-card">
+      <div class="surface-card-body p-4">
+        <form method="POST">
+          {{ form.hidden_tag() }}
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.amount.label }}</label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else "")) }}
+              </div>
+              {% for err in form.amount.errors %}
+                <div class="invalid-feedback d-block">{{ err }}</div>
+              {% endfor %}
+              <div class="form-text small">Enter amount being deposited (up to remaining balance).</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.payment_method.label }}</label>
+              {{ form.payment_method(class="form-select") }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.transaction_reference.label }}</label>
+              {{ form.transaction_reference(class="form-control", placeholder="e.g. WIRE-8893412 or Cheque #5502") }}
+              <div class="form-text small">Bank receipt, cheque number, or transaction identifier.</div>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label small fw-bold text-secondary">{{ form.notes.label }}</label>
+              {{ form.notes(class="form-control", rows=2, placeholder="Administrative reference or receipt remarks...") }}
+            </div>
+
+            <div class="col-12 d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+              <a href="{{ url_for('finance.index') }}" class="btn btn-outline-secondary">Cancel</a>
+              {{ form.submit(class="btn btn-gold px-4") }}
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
