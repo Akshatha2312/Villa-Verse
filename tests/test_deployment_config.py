@@ -1,7 +1,9 @@
 import pytest
 
 from app import create_app
+from app.extensions import db
 from config import ProductionConfig, normalize_database_url
+from sqlalchemy import inspect
 
 
 def test_normalize_render_postgresql_urls_for_psycopg():
@@ -16,6 +18,7 @@ def test_normalize_render_postgresql_urls_for_psycopg():
 
 def test_production_app_requires_secure_secret_and_postgresql(monkeypatch):
     monkeypatch.setattr(ProductionConfig, "SECRET_KEY", "s" * 64)
+    monkeypatch.setattr(db, "create_all", lambda: None)
     monkeypatch.setattr(
         ProductionConfig,
         "SQLALCHEMY_DATABASE_URI",
@@ -35,6 +38,46 @@ def test_init_db_cli_creates_missing_tables():
 
     assert result.exit_code == 0
     assert "Existing tables were not migrated." in result.output
+
+
+def test_app_factory_initializes_models_and_dashboard():
+    app = create_app("testing")
+
+    with app.app_context():
+        tables = set(inspect(db.engine).get_table_names())
+
+    assert {
+        "villas",
+        "community_members",
+        "villa_occupancies",
+        "maintenance_requests",
+        "fee_charges",
+        "payment_records",
+        "expense_records",
+    } <= tables
+
+    response = app.test_client().get("/")
+
+    assert response.status_code == 200
+    assert b"Operations overview" in response.data
+
+
+def test_render_defaults_to_production_configuration(monkeypatch):
+    monkeypatch.setenv("RENDER", "true")
+    monkeypatch.delenv("FLASK_ENV", raising=False)
+    monkeypatch.setattr(ProductionConfig, "SECRET_KEY", "s" * 64)
+    monkeypatch.setattr(db, "create_all", lambda: None)
+    monkeypatch.setattr(
+        ProductionConfig,
+        "SQLALCHEMY_DATABASE_URI",
+        "postgresql+psycopg://user:password@localhost/villaverse",
+    )
+
+    app = create_app()
+
+    assert app.config["ENVIRONMENT"] == "production"
+    assert app.config["DEBUG"] is False
+    assert app.config["SQLALCHEMY_DATABASE_URI"].startswith("postgresql+psycopg://")
 
 
 @pytest.mark.parametrize(

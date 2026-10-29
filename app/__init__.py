@@ -5,6 +5,7 @@ from config import config_by_name
 from app.extensions import db, csrf
 from app.exceptions import VillaVerseError
 from app.currency import format_inr
+from app import models as _models
 
 
 def create_app(config_name: str | None = None) -> Flask:
@@ -14,7 +15,10 @@ def create_app(config_name: str | None = None) -> Flask:
     and sets up custom template filters and context processors.
     """
     if config_name is None:
-        config_name = os.environ.get("FLASK_ENV", "development")
+        if os.environ.get("RENDER") == "true":
+            config_name = "production"
+        else:
+            config_name = os.environ.get("FLASK_ENV", "development")
 
     app = Flask(__name__)
     app.config.from_object(config_by_name.get(config_name, config_by_name["default"]))
@@ -53,6 +57,9 @@ def create_app(config_name: str | None = None) -> Flask:
     app.register_blueprint(maintenance_bp)
     app.register_blueprint(finance_bp)
     app.register_blueprint(reports_bp)
+
+    with app.app_context():
+        db.create_all()
 
     @app.template_filter("currency")
     def currency_filter(value):

@@ -311,6 +311,8 @@ Set these Render environment variables:
 
 The `init-db` command creates missing tables using SQLAlchemy `create_all`; it does not migrate or alter existing tables. No migration framework or migration files are present. For future schema changes to a database with existing records, add and run a proper migration before deploying. The command does not erase existing data. The `seed-db` command is not part of deployment and should only be run manually when intentionally populating a demonstration database.
 
+The application factory imports the model package and creates any missing tables inside the Flask application context, so Gunicorn startup also initializes a new database before serving requests. This does not seed sample records or alter existing tables. On Render, the app selects the production configuration from Render's `RENDER=true` environment variable when `FLASK_ENV` is unset; production still requires a valid `SECRET_KEY` and PostgreSQL `DATABASE_URL`.
+
 Use Render PostgreSQL for persistent production data. The ignored local SQLite database is for development/testing and should not be uploaded or used as the production database. `.venv`, local database files, environment files, and Python/test caches are excluded from Git; `.env.example` is retained as a safe template.
 
 ---
