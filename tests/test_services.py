@@ -121,7 +121,7 @@ class TestMaintenanceService:
 
 class TestFinanceService:
     def test_generate_monthly_charges_proportional_to_sqft(self, db_session, sample_villa):
-        # sample_villa is 4500 sq ft, rate 0.15/sq.ft => $675.00
+        # sample_villa is 4500 sq ft, rate 0.15/sq.ft => ₹675
         count = finance_service.generate_monthly_charges(period_month="2026-10", rate_per_sqft=0.15)
         assert count == 1
 
@@ -152,12 +152,39 @@ class TestFinanceService:
 
 class TestReportService:
     def test_csv_exports(self, db_session, sample_villa):
+        charge = FeeCharge(
+            invoice_number="INV-202610-V-TEST-01",
+            villa_id=sample_villa.id,
+            period_month="2026-10",
+            amount=150000.0,
+            due_date=date(2026, 10, 31),
+            status=FeeCharge.STATUS_UNPAID
+        )
+        ticket = MaintenanceRequest(
+            ticket_number="REQ-TEST-01",
+            villa_id=sample_villa.id,
+            category="Electrical",
+            title="Electrical panel repair",
+            description="Repair a faulty electrical panel.",
+            priority=MaintenanceRequest.PRIORITY_HIGH,
+            status=MaintenanceRequest.STATUS_RESOLVED,
+            cost=25000.0
+        )
+        db_session.add_all([charge, ticket])
+        db_session.commit()
+
         villas_csv = report_service.export_villas_csv()
         assert "Villa ID,Plot Number" in villas_csv
         assert "V-TEST-01" in villas_csv
+        assert "Outstanding Balance (INR)" in villas_csv
+        assert "₹1,50,000" in villas_csv
 
         maint_csv = report_service.export_maintenance_csv()
         assert "Ticket Number,Villa ID" in maint_csv
+        assert "Cost (INR)" in maint_csv
+        assert "₹25,000" in maint_csv
 
         fin_csv = report_service.export_finance_csv()
         assert "Invoice Number,Villa ID" in fin_csv
+        assert "Invoiced Amount (INR)" in fin_csv
+        assert "₹1,50,000" in fin_csv

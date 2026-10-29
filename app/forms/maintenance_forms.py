@@ -31,6 +31,6 @@ class MaintenanceUpdateForm(FlaskForm):
         validators=[DataRequired()]
     )
     assigned_to = StringField("Assigned Technician / Contractor", validators=[Optional(), Length(max=80)])
-    cost = FloatField("Incurred Cost ($)", default=0.0, validators=[Optional(), NumberRange(min=0.0)])
+    cost = FloatField("Incurred Cost (₹)", default=0.0, validators=[Optional(), NumberRange(min=0.0)])
     resolution_notes = TextAreaField("Resolution / Progress Notes", validators=[Optional(), Length(max=1000)])
     submit = SubmitField("Update Ticket")

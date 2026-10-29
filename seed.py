@@ -10,6 +10,7 @@ All generated records are fictional.
 import random
 from datetime import date, datetime, timedelta, timezone
 from app import create_app
+from app.currency import format_inr
 from app.extensions import db
 from app.models.villa import Villa
 from app.models.member import CommunityMember, Owner, Resident
@@ -17,7 +18,6 @@ from app.models.occupancy import VillaOccupancy
 from app.models.maintenance import MaintenanceRequest
 from app.models.finance import FeeCharge, PaymentRecord, ExpenseRecord
 
-# Realistic Fictional Seed Data Sets
 FIRST_NAMES = [
     "Alexander", "Beatrice", "Christopher", "Diana", "Eleanor", "Felix", "Gabriel",
     "Helena", "Isabella", "Julian", "Katarina", "Liam", "Marcus", "Nadia", "Oliver",
@@ -78,17 +78,15 @@ CONTRACTORS = [
 
 def seed_database():
     """Generates 100+ fictional sample records in the database."""
-    # Ensure fresh schema tables exist
     db.create_all()
 
-    # If already seeded with 100+ villas, inform user and exit
     existing_count = Villa.query.count()
     if existing_count >= 100:
         print(f"Database already contains {existing_count} villas. Skipping duplicate seed.")
         return
 
     print("Generating 105 realistic luxury villas in Emerald Palms Community...")
-    random.seed(42)  # Deterministic seed for reproducible results
+    random.seed(42)
 
     # 1. Generate 105 Villas (V-101 to V-205)
     villas = []
@@ -126,7 +124,6 @@ def seed_database():
     db.session.commit()
     print(f"Successfully registered {len(villas)} villas.")
 
-    # 2. Generate 90 Community Members (Owners & Residents)
     print("Registering community owners and residents...")
     members = []
     used_emails = set()
@@ -137,7 +134,6 @@ def seed_database():
         base_email = f"{first.lower()}.{last.lower()}{i}@emeraldpalms.demo"
         phone = f"+1 (555) {random.randint(200, 999):03d}-{random.randint(1000, 9999):04d}"
 
-        # 60% Owners, 40% Tenants
         if i % 3 != 0:
             owner = Owner(
                 first_name=first,
@@ -195,7 +191,6 @@ def seed_database():
         template = random.choice(MAINTENANCE_TEMPLATES)
         reporter = random.choice(members)
 
-        # Mix of statuses: 15 Open, 12 In Progress, 18 Resolved
         if idx <= 15:
             st = MaintenanceRequest.STATUS_OPEN
             assigned = None
@@ -247,8 +242,6 @@ def seed_database():
             amount = round(villa.built_up_area * rate_sqft, 2)
             invoice_num = f"INV-{period.replace('-', '')}-{villa.villa_id}"
 
-            # Payment behavior simulation:
-            # Older months mostly paid; current month has some partial/unpaid
             rand_val = random.random()
             if period == "2026-08":
                 st = FeeCharge.STATUS_PAID if rand_val < 0.95 else FeeCharge.STATUS_PARTIAL
@@ -265,12 +258,11 @@ def seed_database():
                 amount=amount,
                 due_date=due_d,
                 status=st,
-                description=f"Monthly dues for Villa {villa.villa_id} ({villa.built_up_area:.0f} sq.ft @ ${rate_sqft}/sq.ft)"
+                description=f"Monthly dues for Villa {villa.villa_id} ({villa.built_up_area:.0f} sq.ft @ {format_inr(rate_sqft)}/sq.ft)"
             )
             db.session.add(charge)
             db.session.flush()
 
-            # Record associated payments according to status
             if st == FeeCharge.STATUS_PAID:
                 payment = PaymentRecord(
                     receipt_number=f"REC-{period.replace('-', '')}-{charge.id:04d}",

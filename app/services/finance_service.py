@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict, Any, Tuple
 from datetime import date, datetime, timedelta, timezone
 from sqlalchemy import or_, func, desc
+from app.currency import format_inr
 from app.extensions import db
 from app.models.finance import FeeCharge, PaymentRecord, ExpenseRecord
 from app.models.villa import Villa
@@ -34,7 +35,7 @@ class FinanceService(BaseService[FeeCharge]):
 
     def generate_monthly_charges(
         self,
-        period_month: str,  # Format: "YYYY-MM"
+        period_month: str,
         rate_per_sqft: float = 0.15,
         due_days: int = 15
     ) -> int:
@@ -48,7 +49,6 @@ class FinanceService(BaseService[FeeCharge]):
 
         try:
             year, month = map(int, period_month.split("-"))
-            # Due date 15th of the month
             due_date = date(year, month, min(due_days, 28))
         except (ValueError, TypeError):
             raise BusinessRuleViolationError("Period month must be in 'YYYY-MM' format.")
@@ -57,7 +57,6 @@ class FinanceService(BaseService[FeeCharge]):
         created_count = 0
 
         for villa in villas:
-            # Check if invoice already exists for this period
             existing = FeeCharge.query.filter_by(
                 villa_id=villa.id,
                 period_month=period_month
@@ -77,7 +76,7 @@ class FinanceService(BaseService[FeeCharge]):
                 amount=amount,
                 due_date=due_date,
                 status=FeeCharge.STATUS_UNPAID,
-                description=f"Monthly maintenance fee for Villa {villa.villa_id} ({villa.built_up_area:.0f} sq.ft @ ${rate_per_sqft}/sq.ft)"
+                description=f"Monthly maintenance fee for Villa {villa.villa_id} ({villa.built_up_area:.0f} sq.ft @ {format_inr(rate_per_sqft)}/sq.ft)"
             )
             db.session.add(charge)
             created_count += 1

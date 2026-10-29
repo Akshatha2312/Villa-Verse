@@ -1,7 +1,24 @@
-/**
- * VillaVerse Dashboard Visualizations
- * Fetches database-calculated analytical data and renders Chart.js charts.
- */
+const inrFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2
+});
+const inrPaiseFormatter = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+
+function formatINR(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return inrFormatter.format(0);
+
+  const roundedAmount = Number(amount.toFixed(2));
+  const formatter = Number.isInteger(roundedAmount) ? inrFormatter : inrPaiseFormatter;
+  return formatter.format(roundedAmount);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchChartData();
@@ -16,7 +33,6 @@ async function fetchChartData() {
     }
     const data = await response.json();
 
-    // Initialize individual charts
     renderOccupancyChart(data.occupancy);
     renderCashflowChart(data.cashflow);
     renderMaintenanceCategoryChart(data.maintenance_categories);
@@ -37,9 +53,9 @@ function renderOccupancyChart(occupancyData) {
         {
           data: occupancyData.data,
           backgroundColor: [
-            "#0E6234", // Occupied (Forest Green)
-            "#1958A7", // Available (Calm Blue)
-            "#D97706"  // Under Construction (Amber)
+            "#0E6234",
+            "#1958A7",
+            "#D97706"
           ],
           borderWidth: 2,
           borderColor: "#FFFFFF",
@@ -82,7 +98,7 @@ function renderCashflowChart(cashflowData) {
       labels: cashflowData.labels,
       datasets: [
         {
-          label: "Invoiced Dues ($)",
+          label: "Invoiced Dues (INR)",
           data: cashflowData.invoiced,
           backgroundColor: "rgba(25, 88, 167, 0.75)",
           borderColor: "#1958A7",
@@ -90,7 +106,7 @@ function renderCashflowChart(cashflowData) {
           borderRadius: 6
         },
         {
-          label: "Collected Payments ($)",
+          label: "Collected Payments (INR)",
           data: cashflowData.collected,
           backgroundColor: "rgba(14, 98, 52, 0.85)",
           borderColor: "#0E6234",
@@ -98,7 +114,7 @@ function renderCashflowChart(cashflowData) {
           borderRadius: 6
         },
         {
-          label: "Operational Expenses ($)",
+          label: "Operational Expenses (INR)",
           data: cashflowData.expenses,
           backgroundColor: "rgba(225, 29, 72, 0.75)",
           borderColor: "#E11D48",
@@ -119,7 +135,7 @@ function renderCashflowChart(cashflowData) {
           grid: { color: "#EDF1EE" },
           ticks: {
             font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
-            callback: (val) => "$" + Number(val).toLocaleString()
+            callback: (val) => formatINR(val)
           }
         }
       },
@@ -138,7 +154,7 @@ function renderCashflowChart(cashflowData) {
           padding: 12,
           cornerRadius: 8,
           callbacks: {
-            label: (ctx) => ` ${ctx.dataset.label}: $${Number(ctx.raw).toLocaleString(undefined, {minimumFractionDigits: 2})}`
+            label: (ctx) => ` ${ctx.dataset.label}: ${formatINR(ctx.raw)}`
           }
         }
       }

@@ -96,7 +96,6 @@ class MaintenanceService(BaseService[MaintenanceRequest]):
         category = data.get("category", "General Maintenance")
         priority = data.get("priority", MaintenanceRequest.PRIORITY_MEDIUM)
 
-        # Generate unique sequential ticket number: REQ-YYYYMM-XXXX
         year_month = datetime.now().strftime("%Y%m")
         count = MaintenanceRequest.query.count() + 1
         ticket_number = f"REQ-{year_month}-{count:04d}"

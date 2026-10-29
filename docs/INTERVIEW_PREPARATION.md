@@ -10,7 +10,7 @@ This document is your preparation handbook for discussing **VillaVerse** in tech
 >
 > *I built VillaVerse with Python, Flask, and SQLAlchemy ORM on the backend, paired with an elegant, responsive dashboard built in Bootstrap 5 and Chart.js. Rather than creating a superficial CRUD prototype, I focused on clean Object-Oriented Architecture: encapsulating domain state transitions, implementing single-table polymorphic inheritance for community members, enforcing separation of concerns through a dedicated service layer, and writing custom domain exception hierarchies.*
 >
-> *The platform is backed by persistent database transactions, seeded with over 100 realistic estates and historical billing ledgers, and covered by an automated 30-test suite with pytest."*
+> *The platform is backed by persistent database transactions, seeded with over 100 realistic estates and historical billing ledgers, and covered by an automated 46-test suite with pytest."*
 
 ---
 
@@ -152,7 +152,7 @@ Overdue tickets trigger alert badges across the dashboard and maintenance ledger
 ### Testing, Quality Assurance & Security
 
 #### Q19: What is your testing strategy?
-**Answer:** We implemented a 30-test suite with `pytest`:
+**Answer:** We implemented a 46-test suite with `pytest`:
 - **Unit Tests (`test_models.py`)**: Tests domain invariants, property setters, status state machines, and polymorphism.
 - **Service Tests (`test_services.py`)**: Tests business rules, duplicate detection, and financial calculations.
 - **Integration Tests (`test_routes.py`)**: Uses the Flask test client to verify HTTP routes, form posts, redirects, and CSV file streaming.
@@ -217,4 +217,4 @@ When sharing your screen during an interview:
 
 5. **Step 5: Automated Testing (30 seconds)**
    - Open PowerShell and run: `pytest -v`.
-   - Show that all 30 tests pass cleanly in under 1 second.
+   - Run `pytest -v` and confirm all 46 tests pass.

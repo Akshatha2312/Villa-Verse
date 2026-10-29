@@ -2,6 +2,7 @@ from datetime import datetime, timezone, date
 from app.extensions import db
 from app.models.base import BaseModel
 from app.exceptions import InvalidPaymentError, BusinessRuleViolationError
+from app.currency import format_inr
 
 class FeeCharge(BaseModel):
     """
@@ -18,18 +19,16 @@ class FeeCharge(BaseModel):
 
     invoice_number = db.Column(db.String(30), unique=True, nullable=False, index=True)
     villa_id = db.Column(db.Integer, db.ForeignKey("villas.id"), nullable=False, index=True)
-    period_month = db.Column(db.String(7), nullable=False, index=True)  # Format 'YYYY-MM'
+    period_month = db.Column(db.String(7), nullable=False, index=True)
     charge_type = db.Column(db.String(50), nullable=False, default="Monthly Community Maintenance")
     amount = db.Column(db.Float, nullable=False)
     due_date = db.Column(db.Date, nullable=False)
     status = db.Column(db.String(20), nullable=False, default=STATUS_UNPAID, index=True)
     description = db.Column(db.String(255), nullable=True)
 
-    # Relationships
     villa = db.relationship("Villa", back_populates="fee_charges")
     payments = db.relationship("PaymentRecord", back_populates="fee_charge", cascade="all, delete-orphan", lazy="select")
 
-    # Encapsulated Business Logic
     @property
     def total_paid(self) -> float:
         """Sum of all applied payments."""
@@ -58,10 +57,9 @@ class FeeCharge(BaseModel):
         current_balance = self.balance
         if amount > current_balance + 0.001:  # small float tolerance
             raise InvalidPaymentError(
-                f"Payment amount (${amount:.2f}) exceeds the outstanding balance (${current_balance:.2f})."
+                f"Payment amount ({format_inr(amount)}) exceeds the outstanding balance ({format_inr(current_balance)})."
             )
 
-        # Generate a unique receipt number
         receipt_no = f"REC-{datetime.now().strftime('%Y%m%d%H%M%S')}-{self.id}"
         payment = PaymentRecord(
             receipt_number=receipt_no,
@@ -73,7 +71,6 @@ class FeeCharge(BaseModel):
         )
         self.payments.append(payment)
 
-        # Recalculate status
         new_balance = self.balance - amount
         if new_balance <= 0.01:
             self.status = self.STATUS_PAID
@@ -92,7 +89,7 @@ class FeeCharge(BaseModel):
         return mapping.get(self.status, "badge-secondary")
 
     def __repr__(self) -> str:
-        return f"<FeeCharge {self.invoice_number} Villa:{self.villa_id} (${self.amount:.2f}, {self.status})>"
+        return f"<FeeCharge {self.invoice_number} Villa:{self.villa_id} ({format_inr(self.amount)}, {self.status})>"
 
 
 class PaymentRecord(BaseModel):
@@ -103,11 +100,12 @@ class PaymentRecord(BaseModel):
     __tablename__ = "payment_records"
 
     PAYMENT_METHODS = [
-        "Bank Wire Transfer",
+        "NEFT / RTGS Bank Transfer",
+        "UPI Payment",
         "Credit / Debit Card",
-        "Online ACH / Portal",
-        "Bankers Cheque",
-        "Direct Cash Deposit"
+        "IMPS Online Transfer",
+        "Demand Draft / Cheque",
+        "Cash Deposit"
     ]
 
     receipt_number = db.Column(db.String(40), unique=True, nullable=False, index=True)
@@ -118,11 +116,10 @@ class PaymentRecord(BaseModel):
     transaction_reference = db.Column(db.String(80), nullable=False)
     notes = db.Column(db.String(255), nullable=True)
 
-    # Relationship
     fee_charge = db.relationship("FeeCharge", back_populates="payments")
 
     def __repr__(self) -> str:
-        return f"<PaymentRecord {self.receipt_number} (${self.amount:.2f} via {self.payment_method})>"
+        return f"<PaymentRecord {self.receipt_number} ({format_inr(self.amount)} via {self.payment_method})>"
 
 
 class ExpenseRecord(BaseModel):
@@ -162,4 +159,4 @@ class ExpenseRecord(BaseModel):
             raise BusinessRuleViolationError("Vendor name cannot be empty.")
 
     def __repr__(self) -> str:
-        return f"<ExpenseRecord {self.expense_number} - {self.category} (${self.amount:.2f})>"
+        return f"<ExpenseRecord {self.expense_number} - {self.category} ({format_inr(self.amount)})>"

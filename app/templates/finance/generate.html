@@ -1,60 +1,46 @@
 {% extends "base.html" %}
 
-{% block title %}Generate Monthly Community Dues{% endblock %}
+{% block title %}Generate Community Dues{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-md-8 col-lg-6">
-    <div class="d-flex align-items-center gap-2 mb-3">
-      <a href="{{ url_for('finance.index') }}" class="btn btn-sm btn-outline-secondary py-0 px-2"><i class="bi bi-arrow-left"></i> Cancel</a>
-      <h2 class="h4 fw-bold mb-0 text-forest">Generate Monthly Maintenance Invoices</h2>
-    </div>
-
-    <div class="surface-card">
-      <div class="surface-card-body p-4">
-        <div class="alert alert-info alert-custom py-2 mb-4">
-          <i class="bi bi-info-circle text-primary fs-5"></i>
-          <div class="small">
-            Invoices are computed proportionally using built-up square footage: <strong>Area &times; Rate/sq.ft</strong>. Villas already billed for the selected month will not be duplicated.
-          </div>
-        </div>
-
-        <form method="POST">
-          {{ form.hidden_tag() }}
-
-          <div class="row g-3">
-            <div class="col-12">
-              <label class="form-label small fw-bold text-secondary">{{ form.period_month.label }}</label>
-              {{ form.period_month(class="form-control" + (" is-invalid" if form.period_month.errors else ""), placeholder="e.g. 2026-10") }}
-              {% for err in form.period_month.errors %}
-                <div class="invalid-feedback">{{ err }}</div>
-              {% endfor %}
-              <div class="form-text small">Standard billing period format: YYYY-MM.</div>
-            </div>
-
-            <div class="col-12 col-sm-6">
-              <label class="form-label small fw-bold text-secondary">{{ form.rate_per_sqft.label }}</label>
-              <div class="input-group">
-                <span class="input-group-text">$</span>
-                {{ form.rate_per_sqft(class="form-control" + (" is-invalid" if form.rate_per_sqft.errors else "")) }}
-              </div>
-              <div class="form-text small">Community base rate per sq. ft.</div>
-            </div>
-
-            <div class="col-12 col-sm-6">
-              <label class="form-label small fw-bold text-secondary">{{ form.due_days.label }}</label>
-              {{ form.due_days(class="form-control" + (" is-invalid" if form.due_days.errors else "")) }}
-              <div class="form-text small">Payment deadline calendar day.</div>
-            </div>
-
-            <div class="col-12 d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-              <a href="{{ url_for('finance.index') }}" class="btn btn-outline-secondary">Cancel</a>
-              {{ form.submit(class="btn btn-forest px-4") }}
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
+<header class="page-heading d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+  <div>
+    <p class="eyebrow mb-2">Finance · Community dues</p>
+    <h2 class="h3 mb-1">Generate monthly invoices</h2>
+    <p class="text-secondary mb-0">The amount is calculated from villa area × the community rate.</p>
   </div>
-</div>
+  <a href="{{ url_for('finance.index') }}" class="btn btn-outline-secondary">Back to ledger</a>
+</header>
+
+<section class="workflow-form" aria-label="Invoice generation">
+  <p class="form-guidance">Existing invoices for a selected month are skipped to prevent duplicates.</p>
+  <form method="POST" class="row g-3">
+    {{ form.hidden_tag() }}
+    <div class="col-12 col-md-4">
+      <label class="form-label">{{ form.period_month.label }}</label>
+      {{ form.period_month(class="form-control" + (" is-invalid" if form.period_month.errors else ""), placeholder="YYYY-MM") }}
+      {% for error in form.period_month.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+      <div class="form-text">Billing period format: YYYY-MM.</div>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">{{ form.rate_per_sqft.label }}</label>
+      <div class="input-group">
+        <span class="input-group-text">₹</span>
+        {{ form.rate_per_sqft(class="form-control" + (" is-invalid" if form.rate_per_sqft.errors else "")) }}
+      </div>
+      {% for error in form.rate_per_sqft.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+      <div class="form-text">Monthly base rate per square foot.</div>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label">{{ form.due_days.label }}</label>
+      {{ form.due_days(class="form-control" + (" is-invalid" if form.due_days.errors else "")) }}
+      {% for error in form.due_days.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+      <div class="form-text">Calendar day invoices are due.</div>
+    </div>
+    <div class="col-12 d-flex justify-content-end gap-2 mt-4">
+      <a href="{{ url_for('finance.index') }}" class="btn btn-outline-secondary">Cancel</a>
+      {{ form.submit(class="btn btn-forest px-4") }}
+    </div>
+  </form>
+</section>
 {% endblock %}

@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from app.currency import format_inr
 from datetime import datetime
 from app.services import finance_service
 from app.models.finance import FeeCharge, PaymentRecord, ExpenseRecord
@@ -44,7 +45,6 @@ def index():
 def generate():
     """Generate monthly community maintenance dues."""
     form = GenerateChargesForm()
-    # Default to current month: YYYY-MM
     if request.method == "GET" and not form.period_month.data:
         form.period_month.data = datetime.now().strftime("%Y-%m")
 
@@ -85,7 +85,7 @@ def record_payment(charge_id: int):
                 transaction_reference=form.transaction_reference.data,
                 notes=form.notes.data
             )
-            flash(f"Payment of ${payment.amount:.2f} logged successfully (Receipt: {payment.receipt_number})!", "success")
+            flash(f"Payment of {format_inr(payment.amount)} logged successfully (Receipt: {payment.receipt_number})!", "success")
             return redirect(url_for("finance.index"))
         except VillaVerseError as e:
             flash(e.message, "danger")
@@ -111,7 +111,7 @@ def expenses():
                 "description": form.description.data
             }
             exp = finance_service.add_expense(data)
-            flash(f"Operational expense '{exp.title}' (${exp.amount:.2f}) recorded successfully.", "success")
+            flash(f"Operational expense '{exp.title}' ({format_inr(exp.amount)}) recorded successfully.", "success")
             return redirect(url_for("finance.expenses"))
         except VillaVerseError as e:
             flash(e.message, "danger")

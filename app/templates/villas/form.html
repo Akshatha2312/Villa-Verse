@@ -18,7 +18,6 @@
           {{ form.hidden_tag() }}
 
           <div class="row g-3">
-            <!-- Villa ID & Plot Number -->
             <div class="col-12 col-sm-6">
               <label class="form-label small fw-bold text-secondary">{{ form.villa_id.label }}</label>
               {{ form.villa_id(class="form-control" + (" is-invalid" if form.villa_id.errors else ""), placeholder="e.g. V-101", readonly=is_edit) }}
@@ -37,7 +36,6 @@
               <div class="form-text small">Master plot cadastre registration.</div>
             </div>
 
-            <!-- Architectural Type & Status -->
             <div class="col-12 col-sm-6">
               <label class="form-label small fw-bold text-secondary">{{ form.villa_type.label }}</label>
               {{ form.villa_type(class="form-select" + (" is-invalid" if form.villa_type.errors else "")) }}
@@ -54,7 +52,6 @@
               {% endfor %}
             </div>
 
-            <!-- Built-up Area & Garden Area -->
             <div class="col-12 col-sm-6">
               <label class="form-label small fw-bold text-secondary">{{ form.built_up_area.label }}</label>
               <div class="input-group">
@@ -74,7 +71,6 @@
               </div>
             </div>
 
-            <!-- Rooms, Baths, Stories, Parking -->
             <div class="col-6 col-sm-3">
               <label class="form-label small fw-bold text-secondary">{{ form.bedrooms.label }}</label>
               {{ form.bedrooms(class="form-control" + (" is-invalid" if form.bedrooms.errors else "")) }}
@@ -95,7 +91,6 @@
               {{ form.parking_slots(class="form-control" + (" is-invalid" if form.parking_slots.errors else "")) }}
             </div>
 
-            <!-- Checkbox: Private Swimming Pool -->
             <div class="col-12">
               <div class="form-check form-switch mt-2">
                 {{ form.has_private_pool(class="form-check-input", id="poolSwitch") }}
@@ -103,7 +98,6 @@
               </div>
             </div>
 
-            <!-- Notes -->
             <div class="col-12">
               <label class="form-label small fw-bold text-secondary">{{ form.notes.label }}</label>
               {{ form.notes(class="form-control", rows=3, placeholder="Special features, garden orientation, architectural notes...") }}

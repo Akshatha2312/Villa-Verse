@@ -7,7 +7,7 @@ class GenerateChargesForm(FlaskForm):
     """Form to generate bulk monthly maintenance dues."""
     period_month = StringField("Billing Month (YYYY-MM)", validators=[DataRequired(), Length(min=7, max=7)])
     rate_per_sqft = FloatField(
-        "Rate per Square Foot ($)",
+        "Rate per Square Foot (₹)",
         default=0.15,
         validators=[DataRequired(), NumberRange(min=0.01, max=10.0)]
     )
@@ -17,7 +17,7 @@ class GenerateChargesForm(FlaskForm):
 
 class RecordPaymentForm(FlaskForm):
     """Form to record an administrative payment against an invoice."""
-    amount = FloatField("Payment Amount ($)", validators=[DataRequired(), NumberRange(min=0.01)])
+    amount = FloatField("Payment Amount (₹)", validators=[DataRequired(), NumberRange(min=0.01)])
     payment_method = SelectField(
         "Payment Channel",
         choices=[(m, m) for m in PaymentRecord.PAYMENT_METHODS],
@@ -36,7 +36,7 @@ class ExpenseForm(FlaskForm):
         validators=[DataRequired()]
     )
     title = StringField("Expense Title / Purpose", validators=[DataRequired(), Length(max=120)])
-    amount = FloatField("Amount ($)", validators=[DataRequired(), NumberRange(min=0.01)])
+    amount = FloatField("Amount (₹)", validators=[DataRequired(), NumberRange(min=0.01)])
     expense_date = DateField("Date Incurred", validators=[Optional()])
     vendor_name = StringField("Vendor / Contractor Name", validators=[DataRequired(), Length(max=100)])
     receipt_reference = StringField("Invoice / Receipt Number", validators=[Optional(), Length(max=60)])

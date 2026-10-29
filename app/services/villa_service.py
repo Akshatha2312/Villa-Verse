@@ -78,7 +78,6 @@ class VillaService(BaseService[Villa]):
         if villa_type:
             query = query.filter(Villa.villa_type == villa_type)
 
-        # Sorting
         sort_column = getattr(Villa, sort_by, Villa.villa_id)
         if sort_dir.lower() == "desc":
             query = query.order_by(desc(sort_column))

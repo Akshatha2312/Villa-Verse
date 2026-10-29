@@ -10,7 +10,6 @@
       <h2 class="h4 fw-bold mb-0 text-forest">Record Community Dues Payment</h2>
     </div>
 
-    <!-- Invoice Summary Box -->
     <div class="surface-card mb-4">
       <div class="surface-card-body p-4 bg-light">
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -36,7 +35,6 @@
       </div>
     </div>
 
-    <!-- Payment Recording Form -->
     <div class="surface-card">
       <div class="surface-card-body p-4">
         <form method="POST">
@@ -46,7 +44,7 @@
             <div class="col-12">
               <label class="form-label small fw-bold text-secondary">{{ form.amount.label }}</label>
               <div class="input-group">
-                <span class="input-group-text">$</span>
+                <span class="input-group-text">₹</span>
                 {{ form.amount(class="form-control" + (" is-invalid" if form.amount.errors else "")) }}
               </div>
               {% for err in form.amount.errors %}

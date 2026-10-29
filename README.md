@@ -3,7 +3,7 @@
 [![Python](https://img.shields.io/badge/Python-3.14%2B-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Framework-Flask%203.1-0F382C.svg)](https://flask.palletsprojects.com/)
 [![ORM](https://img.shields.io/badge/ORM-SQLAlchemy%202.1-D4AF37.svg)](https://www.sqlalchemy.org/)
-[![Tests](https://img.shields.io/badge/Tests-30%20Passed-success.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-46%20Passed-success.svg)](tests/)
 [![Architecture](https://img.shields.io/badge/Architecture-Clean%20OOP%20Layered-forest.svg)](app/)
 
 > **VillaVerse** is a modern, modular, production-ready villa community management platform designed for gated private estates managing 100 to thousands of individual villas. Built with **Python 3**, **Flask**, **SQLAlchemy ORM**, **SQLite**, **Bootstrap 5**, and **Chart.js**, it demonstrates clean Object-Oriented Programming (OOP) principles, defensive domain modeling, transactional integrity, and SaaS visual aesthetics.
@@ -287,6 +287,31 @@ pytest -v
 python run.py
 ```
 Open **[http://127.0.0.1:5000](http://127.0.0.1:5000)** in your browser.
+
+---
+
+## Render Deployment
+
+VillaVerse's WSGI entry point is `run.py`, which exports the Flask application as `app`. Configure a Render **Web Service** with:
+
+- **Build command:** `pip install -r requirements.txt`
+- **Start command:** `flask --app run:app init-db && exec gunicorn --bind 0.0.0.0:$PORT run:app`
+- **Runtime:** Python 3.11 or newer
+
+Set these Render environment variables:
+
+| Variable | Required | Value |
+|---|---|---|
+| `FLASK_ENV` | Yes | `production` |
+| `SECRET_KEY` | Yes | A unique random secret of at least 32 characters. Generate one with `python -c "import secrets; print(secrets.token_hex(32))"` and store it only in Render's environment settings. |
+| `DATABASE_URL` | Yes | The **internal** connection URL of a persistent Render PostgreSQL database in the same region. The app converts Render's `postgres://`/`postgresql://` URL schemes to the installed psycopg 3 driver. |
+| `PORT` | Supplied by Render | Do not set manually; Gunicorn binds to this assigned port on `0.0.0.0`. |
+| `COMMUNITY_NAME` | No | Optional community display name. |
+| `MONTHLY_BASE_FEE_RATE_PER_SQFT` | No | Optional base fee rate; defaults to `0.15`. |
+
+The `init-db` command creates missing tables using SQLAlchemy `create_all`; it does not migrate or alter existing tables. No migration framework or migration files are present. For future schema changes to a database with existing records, add and run a proper migration before deploying. The command does not erase existing data. The `seed-db` command is not part of deployment and should only be run manually when intentionally populating a demonstration database.
+
+Use Render PostgreSQL for persistent production data. The ignored local SQLite database is for development/testing and should not be uploaded or used as the production database. `.venv`, local database files, environment files, and Python/test caches are excluded from Git; `.env.example` is retained as a safe template.
 
 ---
 

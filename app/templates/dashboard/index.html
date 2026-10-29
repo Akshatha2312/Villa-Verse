@@ -1,254 +1,125 @@
 {% extends "base.html" %}
 
-{% block title %}Community Management Overview{% endblock %}
+{% block title %}Community Overview{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+<header class="page-heading d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
   <div>
-    <h2 class="h3 fw-bold mb-1 text-forest">Executive Dashboard</h2>
-    <p class="text-secondary mb-0 small">Real-time status of <strong>{{ community_name }}</strong> estates, residents, maintenance & cashflow.</p>
+    <p class="eyebrow mb-2">Community overview</p>
+    <h2 class="h3 mb-1">Operations overview</h2>
+    <p class="text-secondary mb-0">{{ community_name }} <span class="mx-1">·</span> Demonstration data</p>
   </div>
-  <div class="d-flex align-items-center gap-2">
-    <a href="{{ url_for('reports.index') }}" class="btn btn-outline-forest btn-sm">
-      <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports & CSV
-    </a>
-    <a href="{{ url_for('villas.create') }}" class="btn btn-forest btn-sm">
-      <i class="bi bi-plus-lg me-1"></i> Add Villa
-    </a>
-  </div>
+  <a href="{{ url_for('maintenance.create') }}" class="btn btn-forest">
+    <i class="bi bi-plus-lg me-1"></i> Log a maintenance request
+  </a>
+</header>
+
+<div class="row g-4 mb-5">
+  <section class="col-12 col-lg-5" aria-labelledby="occupancy-heading">
+    <div class="section-heading">
+      <h3 id="occupancy-heading">Occupancy</h3>
+      <a href="{{ url_for('villas.index') }}">Villa register <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="occupancy-summary">
+      <div class="occupancy-total">
+        <span class="metric-value">{{ data.villas.total }}</span>
+        <span class="text-secondary">villas in the community</span>
+      </div>
+      <div class="occupancy-rate">{{ data.villas.occupancy_rate }}% <span>occupied</span></div>
+    </div>
+    <dl class="summary-list">
+      <div><dt>Occupied</dt><dd>{{ data.villas.occupied }}</dd></div>
+      <div><dt>Available</dt><dd>{{ data.villas.available }}</dd></div>
+      <div><dt>Under construction</dt><dd>{{ data.villas.under_construction }}</dd></div>
+    </dl>
+  </section>
+
+  <section class="col-12 col-lg-7" aria-labelledby="finance-heading">
+    <div class="section-heading">
+      <h3 id="finance-heading">Community finances</h3>
+      <a href="{{ url_for('finance.index') }}">Open dues ledger <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="finance-overview">
+      <div>
+        <span class="metric-label">Collected</span>
+        <div class="metric-value">{{ data.finance.collected | currency }}</div>
+      </div>
+      <div>
+        <span class="metric-label">Outstanding</span>
+        <div class="metric-value {% if data.finance.outstanding > 0 %}text-danger{% endif %}">{{ data.finance.outstanding | currency }}</div>
+      </div>
+      <div>
+        <span class="metric-label">Operating expenses</span>
+        <div class="metric-value">{{ data.finance.expenses | currency }}</div>
+      </div>
+    </div>
+    <p class="small text-muted mt-2 mb-0">{{ data.finance.collection_rate }}% of invoiced community dues collected</p>
+  </section>
 </div>
 
-<!-- Key Performance Metric Cards -->
-<div class="row g-3 mb-4">
-  <!-- Metric 1: Total Registered Villas -->
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-forest">
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <div class="metric-label">Total Estates</div>
-          <div class="metric-value">{{ data.villas.total }}</div>
-        </div>
-        <div class="metric-icon-box forest">
-          <i class="bi bi-houses"></i>
-        </div>
+<div class="row g-5">
+  <section class="col-12 col-xl-7" aria-labelledby="maintenance-heading">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow mb-1">Needs attention</p>
+        <h3 id="maintenance-heading">High-priority maintenance</h3>
       </div>
-      <div class="metric-meta">
-        <span class="text-success fw-semibold">{{ data.villas.occupied }} Occupied</span> &bull; 
-        <span class="text-primary fw-semibold">{{ data.villas.available }} Available</span>
-      </div>
+      <a href="{{ url_for('maintenance.index') }}">All requests <span aria-hidden="true">→</span></a>
     </div>
-  </div>
-
-  <!-- Metric 2: Occupancy Rate -->
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-gold">
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <div class="metric-label">Occupancy Rate</div>
-          <div class="metric-value">{{ data.villas.occupancy_rate }}%</div>
-        </div>
-        <div class="metric-icon-box gold">
-          <i class="bi bi-pie-chart-fill"></i>
-        </div>
-      </div>
-      <div class="metric-meta">
-        <span class="text-warning fw-semibold">{{ data.villas.under_construction }} Under Construction</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Metric 3: Active Maintenance Work Orders -->
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-amber">
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <div class="metric-label">Active Work Orders</div>
-          <div class="metric-value">{{ data.maintenance.active }}</div>
-        </div>
-        <div class="metric-icon-box amber">
-          <i class="bi bi-tools"></i>
-        </div>
-      </div>
-      <div class="metric-meta">
-        {% if data.maintenance.urgent > 0 %}
-          <span class="text-danger fw-bold"><i class="bi bi-exclamation-circle-fill me-1"></i>{{ data.maintenance.urgent }} Urgent Attention</span>
-        {% else %}
-          <span class="text-success"><i class="bi bi-check-circle me-1"></i>No urgent escalations</span>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Metric 4: Community Dues Collection -->
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-blue">
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <div class="metric-label">Total Dues Collected</div>
-          <div class="metric-value">{{ data.finance.collected | currency }}</div>
-        </div>
-        <div class="metric-icon-box blue">
-          <i class="bi bi-cash-coin"></i>
-        </div>
-      </div>
-      <div class="metric-meta">
-        <span>{{ data.finance.collection_rate }}% collected</span> &bull; 
-        <span class="text-danger fw-semibold">{{ data.finance.outstanding | currency }} pending</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Charts Section: Occupancy Donut & Cashflow Bar -->
-<div class="row g-4 mb-4">
-  <div class="col-12 col-lg-5">
-    <div class="surface-card h-100 mb-0">
-      <div class="surface-card-header">
-        <h3 class="surface-card-title">
-          <i class="bi bi-pie-chart text-forest"></i> Villa Occupancy Breakdown
-        </h3>
-        <span class="badge bg-light text-dark border">Live DB Records</span>
-      </div>
-      <div class="surface-card-body d-flex flex-column justify-content-center">
-        <div style="position: relative; height: 260px;">
-          <canvas id="occupancyChart"></canvas>
-        </div>
-        <div class="row text-center mt-3 pt-3 border-top g-2">
-          <div class="col-4">
-            <div class="small text-muted">Occupied</div>
-            <div class="fw-bold text-success fs-6">{{ data.villas.occupied }}</div>
-          </div>
-          <div class="col-4">
-            <div class="small text-muted">Available</div>
-            <div class="fw-bold text-primary fs-6">{{ data.villas.available }}</div>
-          </div>
-          <div class="col-4">
-            <div class="small text-muted">Construction</div>
-            <div class="fw-bold text-warning fs-6">{{ data.villas.under_construction }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-12 col-lg-7">
-    <div class="surface-card h-100 mb-0">
-      <div class="surface-card-header">
-        <h3 class="surface-card-title">
-          <i class="bi bi-bar-chart-line text-forest"></i> Cashflow & Operations (Last 6 Months)
-        </h3>
-        <span class="badge bg-light text-dark border">Invoiced vs Collected vs Spent</span>
-      </div>
-      <div class="surface-card-body">
-        <div style="position: relative; height: 280px;">
-          <canvas id="cashflowChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Urgent Attention Work Orders & Recent Activity Feed -->
-<div class="row g-4">
-  <!-- Urgent Maintenance Column -->
-  <div class="col-12 col-xl-7">
-    <div class="surface-card mb-0">
-      <div class="surface-card-header">
-        <h3 class="surface-card-title">
-          <i class="bi bi-exclamation-triangle text-danger"></i> Urgent & High-Priority Maintenance
-        </h3>
-        <a href="{{ url_for('maintenance.index') }}" class="btn btn-sm btn-link text-decoration-none">View All</a>
-      </div>
-      <div class="table-responsive">
-        <table class="table-custom">
-          <thead>
+    <div class="table-responsive">
+      <table class="table-custom">
+        <thead>
+          <tr>
+            <th>Request</th>
+            <th>Villa</th>
+            <th>Priority</th>
+            <th>Status</th>
+            <th>Due by</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ticket in data.urgent_tickets %}
             <tr>
-              <th>Ticket</th>
-              <th>Villa</th>
-              <th>Category</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th>Action</th>
+              <td><a href="{{ url_for('maintenance.detail', ticket_id=ticket.id) }}">{{ ticket.ticket_number }}</a></td>
+              <td><a href="{{ url_for('villas.detail', villa_id=ticket.villa.id) }}">{{ ticket.villa.villa_id }}</a></td>
+              <td><span class="badge {{ ticket.priority_badge_class }}">{{ ticket.priority }}</span></td>
+              <td><span class="badge {{ ticket.status_badge_class }}">{{ ticket.status }}</span></td>
+              <td class="{% if ticket.is_overdue %}text-danger fw-semibold{% else %}text-secondary{% endif %}">
+                {{ ticket.sla_due_date.strftime('%d %b %Y') }}
+                {% if ticket.is_overdue %}<span class="small">Overdue</span>{% endif %}
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {% for ticket in data.urgent_tickets %}
-              <tr>
-                <td class="fw-bold text-forest">
-                  <a href="{{ url_for('maintenance.detail', ticket_id=ticket.id) }}" class="text-decoration-none">
-                    {{ ticket.ticket_number }}
-                  </a>
-                </td>
-                <td>
-                  <a href="{{ url_for('villas.detail', villa_id=ticket.villa.id) }}" class="text-decoration-none fw-semibold">
-                    {{ ticket.villa.villa_id }}
-                  </a>
-                </td>
-                <td><span class="small">{{ ticket.category }}</span></td>
-                <td>
-                  <span class="badge {{ ticket.priority_badge_class }}">{{ ticket.priority }}</span>
-                </td>
-                <td>
-                  <span class="badge {{ ticket.status_badge_class }}">{{ ticket.status }}</span>
-                </td>
-                <td>
-                  <a href="{{ url_for('maintenance.detail', ticket_id=ticket.id) }}" class="btn btn-sm btn-outline-forest py-0 px-2">
-                    Inspect
-                  </a>
-                </td>
-              </tr>
-            {% else %}
-              <tr>
-                <td colspan="6" class="text-center py-4 text-muted">
-                  <i class="bi bi-check2-circle text-success fs-4 d-block mb-1"></i>
-                  No overdue or urgent maintenance issues pending at this time!
-                </td>
-              </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Recent Collections Feed -->
-  <div class="col-12 col-xl-5">
-    <div class="surface-card mb-0">
-      <div class="surface-card-header">
-        <h3 class="surface-card-title">
-          <i class="bi bi-credit-card text-forest"></i> Recent Collections
-        </h3>
-        <a href="{{ url_for('finance.index') }}" class="btn btn-sm btn-link text-decoration-none">Ledger</a>
-      </div>
-      <div class="surface-card-body p-0">
-        <div class="list-group list-group-flush">
-          {% for p in data.recent_payments %}
-            <div class="list-group-item px-3 py-3 d-flex align-items-center justify-content-between">
-              <div class="d-flex align-items-center gap-3">
-                <div class="p-2 rounded bg-success bg-opacity-10 text-success">
-                  <i class="bi bi-arrow-down-left"></i>
-                </div>
-                <div>
-                  <div class="fw-semibold text-dark small">Villa {{ p.fee_charge.villa.villa_id }}</div>
-                  <div class="text-muted" style="font-size: 0.75rem;">{{ p.payment_method }} &bull; {{ p.receipt_number }}</div>
-                </div>
-              </div>
-              <div class="text-end">
-                <div class="fw-bold text-forest">{{ p.amount | currency }}</div>
-                <div class="text-muted" style="font-size: 0.72rem;">{{ p.payment_date.strftime('%b %d, %Y') }}</div>
-              </div>
-            </div>
           {% else %}
-            <div class="p-4 text-center text-muted small">No payment transactions recorded yet.</div>
+            <tr><td colspan="5" class="empty-state">No high-priority requests are currently pending.</td></tr>
           {% endfor %}
-        </div>
-      </div>
+        </tbody>
+      </table>
     </div>
-  </div>
-</div>
-{% endblock %}
+  </section>
 
-{% block extra_scripts %}
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+  <section class="col-12 col-xl-5" aria-labelledby="activity-heading">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow mb-1">Latest entries</p>
+        <h3 id="activity-heading">Recent payments</h3>
+      </div>
+      <a href="{{ url_for('finance.index') }}">Dues ledger <span aria-hidden="true">→</span></a>
+    </div>
+    <div class="activity-list">
+      {% for payment in data.recent_payments %}
+        <div class="activity-row">
+          <div>
+            <a href="{{ url_for('villas.detail', villa_id=payment.fee_charge.villa.id) }}">
+              Villa {{ payment.fee_charge.villa.villa_id }}
+            </a>
+            <div class="small text-secondary">{{ payment.payment_method }} · {{ payment.payment_date.strftime('%d %b %Y') }}</div>
+          </div>
+          <span class="activity-amount">{{ payment.amount | currency }}</span>
+        </div>
+      {% else %}
+        <p class="empty-state">No payment transactions have been recorded.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
 {% endblock %}

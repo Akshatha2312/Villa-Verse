@@ -97,14 +97,12 @@ def assign():
     """Assign a member to a villa."""
     form = AssignResidentForm()
 
-    # Populate choices dynamically
     villas = Villa.query.order_by(Villa.villa_id.asc()).all()
     form.villa_id.choices = [(v.id, f"{v.villa_id} (Plot: {v.plot_number} - {v.status})") for v in villas]
 
     members = CommunityMember.query.order_by(CommunityMember.first_name.asc()).all()
     form.member_id.choices = [(m.id, f"{m.full_name} ({m.get_role_label()})") for m in members]
 
-    # Pre-select villa or member if passed via query args
     pre_villa = request.args.get("villa_id", type=int)
     pre_member = request.args.get("member_id", type=int)
     if request.method == "GET":

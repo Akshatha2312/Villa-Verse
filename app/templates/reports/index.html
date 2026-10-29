@@ -1,145 +1,83 @@
 {% extends "base.html" %}
 
-{% block title %}Community Analytics & Reports{% endblock %}
+{% block title %}Community Reports{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+<header class="page-heading d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
   <div>
-    <h2 class="h3 fw-bold mb-1 text-forest">Community Analytics & Reports</h2>
-    <p class="text-secondary mb-0 small">Aggregated KPIs, operational performance, and compliance data exports for {{ community_name }}.</p>
+    <p class="eyebrow mb-2">Records</p>
+    <h2 class="h3 mb-1">Community reports</h2>
+    <p class="text-secondary mb-0">Summary of occupancy, dues and maintenance · demonstration records</p>
   </div>
-  <!-- CSV Export Action Buttons -->
-  <div class="dropdown">
-    <button class="btn btn-forest dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-      <i class="bi bi-download"></i>
-      <span>Export Official CSV Reports</span>
-    </button>
-    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
-      <li><h6 class="dropdown-header text-uppercase text-muted small">Standard Exports</h6></li>
-      <li>
-        <a class="dropdown-item" href="{{ url_for('reports.export_villas') }}">
-          <i class="bi bi-filetype-csv me-2 text-primary"></i>Export Villas Registry (.csv)
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="{{ url_for('reports.export_maintenance') }}">
-          <i class="bi bi-filetype-csv me-2 text-danger"></i>Export Maintenance Records (.csv)
-        </a>
-      </li>
-      <li>
-        <a class="dropdown-item" href="{{ url_for('reports.export_finance') }}">
-          <i class="bi bi-filetype-csv me-2 text-success"></i>Export Financial Dues Ledger (.csv)
-        </a>
-      </li>
-    </ul>
-  </div>
+</header>
+
+<div class="row g-5 mb-5">
+  <section class="col-12 col-lg-5" aria-labelledby="report-occupancy-heading">
+    <div class="section-heading">
+      <h3 id="report-occupancy-heading">Occupancy</h3>
+    </div>
+    <div class="report-highlight">
+      <span class="report-highlight-value">{{ data.villas.occupancy_rate }}%</span>
+      <span class="text-secondary">of registered villas occupied</span>
+    </div>
+    <dl class="summary-list">
+      <div><dt>Total villas</dt><dd>{{ data.villas.total }}</dd></div>
+      <div><dt>Occupied</dt><dd>{{ data.villas.occupied }}</dd></div>
+      <div><dt>Available</dt><dd>{{ data.villas.available }}</dd></div>
+      <div><dt>Under construction</dt><dd>{{ data.villas.under_construction }}</dd></div>
+    </dl>
+  </section>
+
+  <section class="col-12 col-lg-7" aria-labelledby="report-finance-heading">
+    <div class="section-heading">
+      <h3 id="report-finance-heading">Financial position</h3>
+      <a href="{{ url_for('finance.index') }}">Open dues ledger <span aria-hidden="true">→</span></a>
+    </div>
+    <dl class="summary-list">
+      <div><dt>Total invoiced</dt><dd>{{ data.finance.invoiced | currency }}</dd></div>
+      <div><dt>Total collected</dt><dd>{{ data.finance.collected | currency }}</dd></div>
+      <div><dt>Outstanding dues</dt><dd class="{% if data.finance.outstanding > 0 %}text-danger{% endif %}">{{ data.finance.outstanding | currency }}</dd></div>
+      <div><dt>Operating expenses</dt><dd>{{ data.finance.expenses | currency }}</dd></div>
+      <div><dt>Cash balance after expenses</dt><dd>{{ data.finance.net_surplus | currency }}</dd></div>
+      <div><dt>Collection rate</dt><dd>{{ data.finance.collection_rate }}%</dd></div>
+    </dl>
+  </section>
 </div>
 
-<!-- KPI Cards -->
-<div class="row g-3 mb-4">
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-forest">
-      <div class="metric-label">Occupancy Rate</div>
-      <div class="metric-value">{{ data.villas.occupancy_rate }}%</div>
-      <div class="metric-meta text-muted">{{ data.villas.occupied }} of {{ data.villas.total }} Estates Occupied</div>
+<section class="mb-5" aria-labelledby="maintenance-chart-heading">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow mb-1">Service workload</p>
+      <h3 id="maintenance-chart-heading">Requests by category</h3>
     </div>
+    <a href="{{ url_for('maintenance.index') }}">View requests <span aria-hidden="true">→</span></a>
   </div>
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-blue">
-      <div class="metric-label">Collection Efficiency</div>
-      <div class="metric-value text-primary">{{ data.finance.collection_rate }}%</div>
-      <div class="metric-meta text-muted">{{ data.finance.collected | currency }} collected</div>
+  {% if data.maintenance.total %}
+    <div class="chart-container">
+      <canvas id="maintenanceCategoryChart" role="img" aria-label="Maintenance request counts by category"></canvas>
     </div>
-  </div>
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-rose">
-      <div class="metric-label">Pending Dues</div>
-      <div class="metric-value text-danger">{{ data.finance.outstanding | currency }}</div>
-      <div class="metric-meta text-danger">Outstanding Receivable</div>
-    </div>
-  </div>
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-gold">
-      <div class="metric-label">Operating Net Surplus</div>
-      <div class="metric-value {% if data.finance.net_surplus >= 0 %}text-forest{% else %}text-danger{% endif %}">
-        {{ data.finance.net_surplus | currency }}
-      </div>
-      <div class="metric-meta text-muted">Surplus after operations</div>
-    </div>
-  </div>
-</div>
+  {% else %}
+    <p class="empty-state">No maintenance requests have been recorded.</p>
+  {% endif %}
+</section>
 
-<!-- Breakdown Charts & Summary Tables -->
-<div class="row g-4 mb-4">
-  <!-- Maintenance Category Breakdown Chart -->
-  <div class="col-12 col-lg-7">
-    <div class="surface-card h-100 mb-0">
-      <div class="surface-card-header">
-        <h3 class="surface-card-title">
-          <i class="bi bi-bar-chart-steps text-forest"></i> Maintenance Volume by Category
-        </h3>
-        <span class="badge bg-light text-dark border">Work Orders Distribution</span>
-      </div>
-      <div class="surface-card-body">
-        <div style="position: relative; height: 300px;">
-          <canvas id="maintenanceCategoryChart"></canvas>
-        </div>
-      </div>
+<section aria-labelledby="export-heading">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow mb-1">Data exports</p>
+      <h3 id="export-heading">Download a register</h3>
     </div>
   </div>
+  <div class="export-links">
+    <a href="{{ url_for('reports.export_villas') }}">Villa registry <span>CSV →</span></a>
+    <a href="{{ url_for('reports.export_maintenance') }}">Maintenance history <span>CSV →</span></a>
+    <a href="{{ url_for('reports.export_finance') }}">Financial ledger <span>CSV →</span></a>
+  </div>
+</section>
+{% endblock %}
 
-  <!-- Executive Summary Table -->
-  <div class="col-12 col-lg-5">
-    <div class="surface-card h-100 mb-0">
-      <div class="surface-card-header">
-        <h3 class="surface-card-title">
-          <i class="bi bi-clipboard2-data text-forest"></i> Key Community Statistics
-        </h3>
-      </div>
-      <div class="surface-card-body p-0">
-        <div class="list-group list-group-flush small">
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Total Registered Villas</span>
-            <span class="fw-bold">{{ data.villas.total }}</span>
-          </div>
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Occupied Estates</span>
-            <span class="fw-bold text-success">{{ data.villas.occupied }}</span>
-          </div>
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Available for Lease / Sale</span>
-            <span class="fw-bold text-primary">{{ data.villas.available }}</span>
-          </div>
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Under Construction / Development</span>
-            <span class="fw-bold text-warning">{{ data.villas.under_construction }}</span>
-          </div>
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Active Work Orders (Total)</span>
-            <span class="fw-bold">{{ data.maintenance.active }}</span>
-          </div>
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Urgent Escalations</span>
-            <span class="fw-bold text-danger">{{ data.maintenance.urgent }}</span>
-          </div>
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Total Invoiced Dues</span>
-            <span class="fw-bold">{{ data.finance.invoiced | currency }}</span>
-          </div>
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Total Collected Collections</span>
-            <span class="fw-bold text-success">{{ data.finance.collected | currency }}</span>
-          </div>
-          <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-            <span class="text-muted">Total Operational Outflow</span>
-            <span class="fw-bold text-danger">{{ data.finance.expenses | currency }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+{% block chart_library %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block extra_scripts %}

@@ -1,146 +1,141 @@
 {% extends "base.html" %}
 
-{% block title %}Community Dues & Billing{% endblock %}
+{% block title %}Community Dues{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+<header class="page-heading d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
   <div>
-    <h2 class="h3 fw-bold mb-1 text-forest">Community Dues & Billing</h2>
-    <p class="text-secondary mb-0 small">Administrative ledger of monthly estate maintenance fees, collections, and outstanding balances.</p>
+    <p class="eyebrow mb-2">Finance</p>
+    <h2 class="h3 mb-1">Community dues</h2>
+    <p class="text-secondary mb-0">Invoices, receipts and outstanding balances · {{ total_count }} invoices</p>
   </div>
   <div class="d-flex align-items-center gap-2">
-    <a href="{{ url_for('finance.expenses') }}" class="btn btn-outline-forest btn-sm">
-      <i class="bi bi-receipt me-1"></i> Operating Expenses
-    </a>
-    <a href="{{ url_for('finance.generate') }}" class="btn btn-forest btn-sm">
-      <i class="bi bi-calculator me-1"></i> Generate Monthly Invoices
-    </a>
+    <a href="{{ url_for('finance.expenses') }}" class="btn btn-outline-forest">Operating expenses</a>
+    <a href="{{ url_for('finance.generate') }}" class="btn btn-forest">Generate invoices</a>
   </div>
-</div>
+</header>
 
-<!-- Financial Summary Metric Cards -->
-<div class="row g-3 mb-4">
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-blue">
-      <div class="metric-label">Total Invoiced</div>
-      <div class="metric-value">{{ summary.total_invoiced | currency }}</div>
-      <div class="metric-meta text-muted">Community Dues Generated</div>
-    </div>
+<section class="finance-overview mb-4" aria-label="Community dues totals">
+  <div>
+    <div class="metric-label">Total invoiced</div>
+    <div class="metric-value">{{ summary.total_invoiced | currency }}</div>
   </div>
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-forest">
-      <div class="metric-label">Total Collected</div>
-      <div class="metric-value text-success">{{ summary.total_collected | currency }}</div>
-      <div class="metric-meta text-success">{{ summary.collection_rate }}% Collection Rate</div>
-    </div>
+  <div>
+    <div class="metric-label">Total collected</div>
+    <div class="metric-value">{{ summary.total_collected | currency }}</div>
+    <div class="metric-meta">{{ summary.collection_rate }}% collected</div>
   </div>
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-rose">
-      <div class="metric-label">Outstanding Dues</div>
-      <div class="metric-value text-danger">{{ summary.outstanding_balance | currency }}</div>
-      <div class="metric-meta text-danger">Pending Resident Payment</div>
-    </div>
+  <div>
+    <div class="metric-label">Outstanding</div>
+    <div class="metric-value text-danger">{{ summary.outstanding_balance | currency }}</div>
+    <div class="metric-meta">Pending resident payment</div>
   </div>
-  <div class="col-12 col-sm-6 col-xl-3">
-    <div class="metric-card accent-gold">
-      <div class="metric-label">Net Cash Surplus</div>
-      <div class="metric-value {% if summary.net_surplus >= 0 %}text-forest{% else %}text-danger{% endif %}">
-        {{ summary.net_surplus | currency }}
-      </div>
-      <div class="metric-meta text-muted">Collected minus Operating Costs</div>
-    </div>
-  </div>
-</div>
+</section>
 
-<!-- Filter Bar -->
 <div class="filter-bar">
   <form method="GET" action="{{ url_for('finance.index') }}" class="row g-2 align-items-center">
-    <div class="col-12 col-md-5">
-      <div class="input-group input-group-sm">
-        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-        <input type="text" name="q" class="form-control border-start-0" placeholder="Search by Invoice, Villa ID..." value="{{ search_query }}">
-      </div>
+    <div class="col-12 col-lg-4">
+      <label class="visually-hidden" for="charge-search">Search invoices</label>
+      <input id="charge-search" type="search" name="q" class="form-control" placeholder="Search invoice, villa or plot" value="{{ search_query }}">
     </div>
-    <div class="col-6 col-md-3">
-      <select name="status" class="form-select form-select-sm">
-        <option value="">All Payment Statuses</option>
-        {% for s in statuses %}
-          <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+    <div class="col-6 col-lg-3">
+      <label class="visually-hidden" for="charge-status">Invoice status</label>
+      <select id="charge-status" name="status" class="form-select">
+        <option value="">All statuses</option>
+        {% for status in statuses %}
+          <option value="{{ status }}" {% if status_filter == status %}selected{% endif %}>{{ status }}</option>
         {% endfor %}
       </select>
     </div>
-    <div class="col-6 col-md-2">
-      <input type="text" name="period" class="form-control form-control-sm" placeholder="YYYY-MM" value="{{ period_filter }}">
+    <div class="col-6 col-lg-3">
+      <label class="visually-hidden" for="charge-period">Billing month</label>
+      <input id="charge-period" type="text" name="period" class="form-control" placeholder="Billing month (YYYY-MM)" value="{{ period_filter }}">
     </div>
-    <div class="col-12 col-md-2">
-      <button type="submit" class="btn btn-sm btn-forest w-100">Filter</button>
+    <div class="col-12 col-lg-2">
+      <button type="submit" class="btn btn-forest w-100">Apply filters</button>
     </div>
   </form>
 </div>
 
-<!-- Fee Charges Ledger Table -->
-<div class="surface-card mb-4">
+<section class="mb-5" aria-labelledby="invoice-ledger-heading">
+  <div class="section-heading">
+    <h3 id="invoice-ledger-heading">Invoice ledger</h3>
+  </div>
   <div class="table-responsive">
     <table class="table-custom">
       <thead>
         <tr>
-          <th>Invoice #</th>
+          <th>Invoice</th>
           <th>Villa</th>
           <th>Period</th>
-          <th>Assessment Type</th>
+          <th>Assessment</th>
           <th>Billed</th>
           <th>Collected</th>
-          <th>Balance Due</th>
+          <th>Balance due</th>
           <th>Status</th>
-          <th>Due Date</th>
-          <th>Action</th>
+          <th>Due date</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
         {% for charge in charges %}
           <tr>
-            <td class="fw-bold">{{ charge.invoice_number }}</td>
-            <td>
-              <a href="{{ url_for('villas.detail', villa_id=charge.villa.id) }}" class="fw-semibold text-decoration-none">
-                {{ charge.villa.villa_id }}
-              </a>
-            </td>
-            <td><span class="badge bg-light text-dark border">{{ charge.period_month }}</span></td>
-            <td><span class="small">{{ charge.charge_type }}</span></td>
+            <td class="fw-semibold">{{ charge.invoice_number }}</td>
+            <td><a href="{{ url_for('villas.detail', villa_id=charge.villa.id) }}">{{ charge.villa.villa_id }}</a></td>
+            <td>{{ charge.period_month }}</td>
+            <td>{{ charge.charge_type }}</td>
             <td>{{ charge.amount | currency }}</td>
-            <td class="text-success">{{ charge.total_paid | currency }}</td>
-            <td class="fw-bold {% if charge.balance > 0 %}text-danger{% else %}text-muted{% endif %}">
-              {{ charge.balance | currency }}
-            </td>
+            <td>{{ charge.total_paid | currency }}</td>
+            <td class="{% if charge.balance > 0 %}text-danger fw-semibold{% else %}text-secondary{% endif %}">{{ charge.balance | currency }}</td>
             <td><span class="badge {{ charge.status_badge_class }}">{{ charge.status }}</span></td>
-            <td class="small text-muted">{{ charge.due_date.strftime('%b %d, %Y') }}</td>
+            <td>{{ charge.due_date.strftime('%d %b %Y') }}</td>
             <td>
               {% if charge.balance > 0 %}
-                <a href="{{ url_for('finance.record_payment', charge_id=charge.id) }}" class="btn btn-sm btn-gold py-0 px-2">
-                  Record Payment
-                </a>
+                <a href="{{ url_for('finance.record_payment', charge_id=charge.id) }}">Record payment</a>
               {% else %}
-                <span class="text-success small"><i class="bi bi-check2-all me-1"></i>Settled</span>
+                <span class="text-success small">Settled</span>
               {% endif %}
             </td>
           </tr>
         {% else %}
-          <tr>
-            <td colspan="10" class="text-center py-5 text-muted">
-              No fee invoices match the search or filter criteria.
-            </td>
-          </tr>
+          <tr><td colspan="10" class="empty-state">No invoices match these filters.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
-</div>
+</section>
 
-<!-- Pagination -->
+<section aria-labelledby="payment-history-heading">
+  <div class="section-heading">
+    <h3 id="payment-history-heading">Recent payment history</h3>
+    <span class="small text-secondary">Latest {{ recent_payments | length }} receipts</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table-custom">
+      <thead>
+        <tr><th>Receipt</th><th>Villa</th><th>Invoice</th><th>Method</th><th>Date</th><th class="text-end">Amount</th></tr>
+      </thead>
+      <tbody>
+        {% for payment in recent_payments %}
+          <tr>
+            <td>{{ payment.receipt_number }}</td>
+            <td><a href="{{ url_for('villas.detail', villa_id=payment.fee_charge.villa.id) }}">{{ payment.fee_charge.villa.villa_id }}</a></td>
+            <td>{{ payment.fee_charge.invoice_number }}</td>
+            <td>{{ payment.payment_method }}</td>
+            <td>{{ payment.payment_date.strftime('%d %b %Y') }}</td>
+            <td class="text-end">{{ payment.amount | currency }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="empty-state">No payments have been recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
 {% if total_pages > 1 %}
-  <nav aria-label="Finance pagination" class="d-flex justify-content-between align-items-center">
-    <div class="small text-muted">Showing page {{ page }} of {{ total_pages }} ({{ total_count }} total charges)</div>
+  <nav aria-label="Finance pagination" class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mt-3">
+    <div class="small text-secondary">Page {{ page }} of {{ total_pages }} · {{ total_count }} invoices</div>
     <ul class="pagination pagination-custom mb-0">
       {% if page > 1 %}
         <li class="page-item"><a class="page-link" href="{{ url_for('finance.index', page=page-1, q=search_query, status=status_filter, period=period_filter) }}">Previous</a></li>

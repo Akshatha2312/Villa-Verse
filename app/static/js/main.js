@@ -1,10 +1,4 @@
-/**
- * VillaVerse Main Application JavaScript
- * Handles responsive sidebar toggling, toast/alert timeouts, and UI interactions.
- */
-
 document.addEventListener("DOMContentLoaded", () => {
-  // 1. Mobile Sidebar Toggle
   const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
   const appSidebar = document.querySelector(".app-sidebar");
 
@@ -13,7 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
       appSidebar.classList.toggle("show");
     });
 
-    // Close when clicking outside on mobile
     document.addEventListener("click", (e) => {
       if (
         window.innerWidth < 992 &&
@@ -26,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 2. Auto-fade Flash Alerts
   const alerts = document.querySelectorAll(".alert-dismissible");
   alerts.forEach((alert) => {
     setTimeout(() => {
@@ -35,7 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 6000);
   });
 
-  // 3. Client-side Table Filter helper (for instant search in lists)
   const clientSearchInputs = document.querySelectorAll("[data-table-search]");
   clientSearchInputs.forEach((input) => {
     const targetTableId = input.getAttribute("data-table-search");

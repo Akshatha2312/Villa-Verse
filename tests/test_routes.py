@@ -7,8 +7,9 @@ class TestHTTPRoutes:
     def test_dashboard_route(self, client, sample_villa):
         response = client.get("/")
         assert response.status_code == 200
-        assert b"Executive Dashboard" in response.data
-        assert b"Total Estates" in response.data
+        assert b"Operations overview" in response.data
+        assert b"Occupancy" in response.data
+        assert b"Demonstration data" in response.data
 
     def test_chart_data_api(self, client, sample_villa):
         response = client.get("/api/chart-data")
@@ -20,13 +21,12 @@ class TestHTTPRoutes:
         assert "maintenance_categories" in data
 
     def test_villas_index_and_detail(self, client, sample_villa):
-        # Index listing
         resp = client.get("/villas/")
         assert resp.status_code == 200
-        assert b"Villas Directory" in resp.data
+        assert b"Community register" in resp.data
+        assert b"Search villa, plot or type" in resp.data
         assert b"V-TEST-01" in resp.data
 
-        # Detail page
         resp_detail = client.get(f"/villas/{sample_villa.id}")
         assert resp_detail.status_code == 200
         assert b"V-TEST-01" in resp_detail.data
@@ -49,17 +49,15 @@ class TestHTTPRoutes:
         assert resp.status_code == 200
         assert b"registered successfully" in resp.data
 
-        # Verify DB
         created = Villa.query.filter_by(villa_id="V-HTTP-99").first()
         assert created is not None
 
     def test_residents_routes(self, client, sample_owner):
         resp = client.get("/residents/")
         assert resp.status_code == 200
-        assert b"Community Members" in resp.data
+        assert b"Residents &amp; owners" in resp.data
         assert b"Arthur Pendelton" in resp.data
 
-        # Detail view
         resp_detail = client.get(f"/residents/{sample_owner.id}")
         assert resp_detail.status_code == 200
         assert b"Arthur Pendelton" in resp_detail.data
@@ -67,24 +65,26 @@ class TestHTTPRoutes:
     def test_maintenance_routes(self, client, sample_villa):
         resp = client.get("/maintenance/")
         assert resp.status_code == 200
-        assert b"Maintenance Management" in resp.data
+        assert b"Maintenance requests" in resp.data
+        assert b"Due by" in resp.data
 
     def test_finance_routes(self, client, sample_villa):
         resp = client.get("/finance/")
         assert resp.status_code == 200
-        assert b"Community Dues &amp; Billing" in resp.data or b"Community Dues & Billing" in resp.data
+        assert b"Community dues" in resp.data
+        assert b"Outstanding" in resp.data
 
         resp_exp = client.get("/finance/expenses")
         assert resp_exp.status_code == 200
-        assert b"Community Operating Expenses" in resp_exp.data
+        assert b"Operating expenses" in resp_exp.data
+        assert "₹".encode("utf-8") in resp_exp.data
 
     def test_reports_and_csv_exports(self, client, sample_villa):
-        # Reports page
         resp = client.get("/reports/")
         assert resp.status_code == 200
-        assert b"Community Analytics &amp; Reports" in resp.data or b"Community Analytics & Reports" in resp.data
+        assert b"Community reports" in resp.data
+        assert b"Financial position" in resp.data
 
-        # CSV Exports
         villas_csv = client.get("/reports/export/villas.csv")
         assert villas_csv.status_code == 200
         assert villas_csv.content_type == "text/csv; charset=utf-8"

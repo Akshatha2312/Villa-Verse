@@ -13,7 +13,6 @@ class Villa(BaseModel):
     """
     __tablename__ = "villas"
 
-    # Class-level constants
     STATUS_AVAILABLE = "Available"
     STATUS_OCCUPIED = "Occupied"
     STATUS_UNDER_CONSTRUCTION = "Under Construction"
@@ -33,11 +32,10 @@ class Villa(BaseModel):
         "Meadow Courtyard (2BHK)"
     ]
 
-    # Database columns
     villa_id = db.Column(db.String(20), unique=True, nullable=False, index=True)
     plot_number = db.Column(db.String(20), unique=True, nullable=False, index=True)
     villa_type = db.Column(db.String(60), nullable=False)
-    built_up_area = db.Column(db.Float, nullable=False)  # in square feet
+    built_up_area = db.Column(db.Float, nullable=False)
     bedrooms = db.Column(db.Integer, nullable=False, default=3)
     bathrooms = db.Column(db.Integer, nullable=False, default=3)
     stories = db.Column(db.Integer, nullable=False, default=2)
@@ -47,7 +45,6 @@ class Villa(BaseModel):
     status = db.Column(db.String(30), nullable=False, default=STATUS_AVAILABLE, index=True)
     notes = db.Column(db.Text, nullable=True)
 
-    # Composition relationships
     occupancies = db.relationship(
         "VillaOccupancy", 
         back_populates="villa", 
@@ -70,7 +67,6 @@ class Villa(BaseModel):
         order_by="desc(FeeCharge.due_date)"
     )
 
-    # Class Methods
     @classmethod
     def get_allowed_statuses(cls) -> tuple[str, ...]:
         return cls.ALLOWED_STATUSES
@@ -88,7 +84,6 @@ class Villa(BaseModel):
         villa.validate()
         return villa
 
-    # Domain Validation & Encapsulation
     def validate(self):
         """Enforce domain rules for villa specifications."""
         if not self.villa_id:
@@ -115,9 +110,7 @@ class Villa(BaseModel):
         if self.status == new_status:
             return
 
-        # Transition rules
         if new_status == self.STATUS_OCCUPIED:
-            # Cannot be occupied if under construction
             if self.status == self.STATUS_UNDER_CONSTRUCTION:
                 raise InvalidStatusTransitionError(
                     "Villa", 
@@ -127,7 +120,6 @@ class Villa(BaseModel):
         
         self.status = new_status
 
-    # Computed Properties
     @property
     def area_sqm(self) -> float:
         """Encapsulated unit conversion (sq ft to sq meters)."""

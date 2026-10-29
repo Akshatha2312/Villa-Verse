@@ -3,125 +3,81 @@
 {% block title %}Maintenance Operations{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+<header class="page-heading d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
   <div>
-    <h2 class="h3 fw-bold mb-1 text-forest">Maintenance Management</h2>
-    <p class="text-secondary mb-0 small">Track work orders, assign specialized contractors, and monitor SLA compliance.</p>
+    <p class="eyebrow mb-2">Property operations</p>
+    <h2 class="h3 mb-1">Maintenance requests</h2>
+    <p class="text-secondary mb-0">{{ total_count }} requests · {{ stats.open_requests + stats.in_progress_requests }} active</p>
   </div>
   <div>
     <a href="{{ url_for('maintenance.create') }}" class="btn btn-forest">
-      <i class="bi bi-plus-lg me-1"></i> Log Work Order
+      Log a request
     </a>
   </div>
-</div>
+</header>
 
-<!-- Maintenance Stats -->
-<div class="row g-3 mb-4">
-  <div class="col-6 col-lg-2">
-    <div class="metric-card accent-forest p-3">
-      <div class="metric-label small">Total Orders</div>
-      <div class="metric-value fs-4">{{ stats.total_requests }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-2">
-    <div class="metric-card accent-blue p-3">
-      <div class="metric-label small">Open Tickets</div>
-      <div class="metric-value fs-4 text-primary">{{ stats.open_requests }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-2">
-    <div class="metric-card accent-amber p-3">
-      <div class="metric-label small">In Progress</div>
-      <div class="metric-value fs-4 text-warning">{{ stats.in_progress_requests }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-2">
-    <div class="metric-card accent-forest p-3">
-      <div class="metric-label small">Resolved</div>
-      <div class="metric-value fs-4 text-success">{{ stats.resolved_requests }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-2">
-    <div class="metric-card accent-rose p-3">
-      <div class="metric-label small">Urgent Open</div>
-      <div class="metric-value fs-4 text-danger">{{ stats.urgent_active_requests }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-lg-2">
-    <div class="metric-card accent-gold p-3">
-      <div class="metric-label small">Total Repairs</div>
-      <div class="metric-value fs-4">{{ stats.total_maintenance_expenditure | currency }}</div>
-    </div>
-  </div>
-</div>
-
-<!-- Overdue or Urgent SLA Alert if present -->
 {% if urgent_tickets %}
   <div class="alert alert-danger alert-custom mb-4" role="alert">
     <i class="bi bi-exclamation-octagon-fill fs-4 text-danger"></i>
     <div>
-      <div class="fw-bold">Priority Attention Required: {{ urgent_tickets | length }} work order(s) are flagged as Urgent or Breached SLA.</div>
-      <div class="small">Review and assign technicians immediately to maintain community quality standards.</div>
+      <div><strong>{{ urgent_tickets | length }} request(s)</strong> need priority review or have passed their SLA target.</div>
     </div>
   </div>
 {% endif %}
 
-<!-- Filters -->
 <div class="filter-bar">
   <form method="GET" action="{{ url_for('maintenance.index') }}" class="row g-2 align-items-center">
-    <div class="col-12 col-md-4">
-      <div class="input-group input-group-sm">
-        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-        <input type="text" name="q" class="form-control border-start-0" placeholder="Search ticket, summary, contractor..." value="{{ search_query }}">
-      </div>
+    <div class="col-12 col-lg-3">
+      <label class="visually-hidden" for="request-search">Search requests</label>
+      <input id="request-search" type="search" name="q" class="form-control" placeholder="Search request or contractor" value="{{ search_query }}">
     </div>
-    <div class="col-4 col-md-2">
-      <select name="status" class="form-select form-select-sm">
-        <option value="">All Statuses</option>
+    <div class="col-4 col-lg-2">
+      <label class="visually-hidden" for="request-status">Request status</label>
+      <select id="request-status" name="status" class="form-select">
+        <option value="">All statuses</option>
         {% for s in statuses %}
           <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
         {% endfor %}
       </select>
     </div>
-    <div class="col-4 col-md-2">
-      <select name="priority" class="form-select form-select-sm">
-        <option value="">All Priorities</option>
+    <div class="col-4 col-lg-2">
+      <label class="visually-hidden" for="request-priority">Request priority</label>
+      <select id="request-priority" name="priority" class="form-select">
+        <option value="">All priorities</option>
         {% for p in priorities %}
           <option value="{{ p }}" {% if priority_filter == p %}selected{% endif %}>{{ p }}</option>
         {% endfor %}
       </select>
     </div>
-    <div class="col-4 col-md-3">
-      <select name="category" class="form-select form-select-sm">
-        <option value="">All Categories</option>
+    <div class="col-4 col-lg-3">
+      <label class="visually-hidden" for="request-category">Request category</label>
+      <select id="request-category" name="category" class="form-select">
+        <option value="">All categories</option>
         {% for c in categories %}
           <option value="{{ c }}" {% if category_filter == c %}selected{% endif %}>{{ c }}</option>
         {% endfor %}
       </select>
     </div>
-    <div class="col-12 col-md-1">
-      <button type="submit" class="btn btn-sm btn-forest w-100">Filter</button>
+    <div class="col-12 col-lg-2">
+      <button type="submit" class="btn btn-forest w-100">Apply filters</button>
     </div>
   </form>
 </div>
 
-<!-- Requests Table -->
-<div class="surface-card mb-4">
-  <div class="table-responsive">
+<div class="table-responsive">
     <table class="table-custom">
       <thead>
         <tr>
           <th>Ticket</th>
           <th>Villa</th>
           <th>Category</th>
-          <th>Summary</th>
+          <th>Request</th>
           <th>Priority</th>
           <th>Status</th>
-          <th>Contractor</th>
-          <th>Incurred Cost</th>
+          <th>Assigned to</th>
+          <th>Due by</th>
           <th>Reported</th>
-          <th>Action</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -142,37 +98,34 @@
             </td>
             <td><span class="small">{{ req.category }}</span></td>
             <td>
-              <div class="text-truncate" style="max-width: 200px;" title="{{ req.title }}">{{ req.title }}</div>
+              <span>{{ req.title }}</span>
             </td>
             <td><span class="badge {{ req.priority_badge_class }}">{{ req.priority }}</span></td>
             <td><span class="badge {{ req.status_badge_class }}">{{ req.status }}</span></td>
             <td>
-              <span class="small text-muted">{{ req.assigned_to or 'Unassigned' }}</span>
+              <span class="small text-secondary">{{ req.assigned_to or 'Unassigned' }}</span>
             </td>
-            <td>{{ req.cost | currency }}</td>
+            <td class="{% if req.is_overdue %}text-danger fw-semibold{% else %}text-secondary{% endif %}" title="Target based on the request priority">
+              {{ req.sla_due_date.strftime('%d %b %Y') }}
+              {% if req.is_overdue %}<div class="small">Overdue</div>{% endif %}
+            </td>
             <td class="small text-muted">{{ req.reported_date.strftime('%b %d, %Y') }}</td>
             <td>
-              <a href="{{ url_for('maintenance.detail', ticket_id=req.id) }}" class="btn btn-sm btn-outline-forest py-0 px-2">
-                Manage
-              </a>
+              <a href="{{ url_for('maintenance.detail', ticket_id=req.id) }}">Open</a>
             </td>
           </tr>
         {% else %}
           <tr>
-            <td colspan="10" class="text-center py-5 text-muted">
-              No maintenance work orders found matching the filter parameters.
-            </td>
+            <td colspan="10" class="empty-state">No requests match these filters.</td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
-  </div>
 </div>
 
-<!-- Pagination -->
 {% if total_pages > 1 %}
   <nav aria-label="Maintenance pagination" class="d-flex justify-content-between align-items-center">
-    <div class="small text-muted">Showing page {{ page }} of {{ total_pages }} ({{ total_count }} total tickets)</div>
+    <div class="small text-secondary">Page {{ page }} of {{ total_pages }} · {{ total_count }} requests</div>
     <ul class="pagination pagination-custom mb-0">
       {% if page > 1 %}
         <li class="page-item"><a class="page-link" href="{{ url_for('maintenance.index', page=page-1, q=search_query, status=status_filter, priority=priority_filter, category=category_filter) }}">Previous</a></li>

@@ -12,7 +12,6 @@ class MaintenanceRequest(BaseModel):
     """
     __tablename__ = "maintenance_requests"
 
-    # Status Constants
     STATUS_OPEN = "Open"
     STATUS_IN_PROGRESS = "In Progress"
     STATUS_RESOLVED = "Resolved"
@@ -25,7 +24,6 @@ class MaintenanceRequest(BaseModel):
         STATUS_CANCELLED
     )
 
-    # Priority Constants
     PRIORITY_LOW = "Low"
     PRIORITY_MEDIUM = "Medium"
     PRIORITY_HIGH = "High"
@@ -38,7 +36,6 @@ class MaintenanceRequest(BaseModel):
         PRIORITY_URGENT
     )
 
-    # Categories
     CATEGORIES = [
         "Plumbing",
         "Electrical",
@@ -59,17 +56,15 @@ class MaintenanceRequest(BaseModel):
     description = db.Column(db.Text, nullable=False)
     priority = db.Column(db.String(20), nullable=False, default=PRIORITY_MEDIUM, index=True)
     status = db.Column(db.String(20), nullable=False, default=STATUS_OPEN, index=True)
-    assigned_to = db.Column(db.String(80), nullable=True)  # Technician or contractor
+    assigned_to = db.Column(db.String(80), nullable=True)
     cost = db.Column(db.Float, nullable=False, default=0.0)
     reported_date = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     resolved_date = db.Column(db.DateTime, nullable=True)
     resolution_notes = db.Column(db.Text, nullable=True)
 
-    # Relationships
     villa = db.relationship("Villa", back_populates="maintenance_requests")
     reported_by = db.relationship("CommunityMember", back_populates="maintenance_reports", foreign_keys=[reported_by_id])
 
-    # Domain Methods & State Machine
     def assign_technician(self, technician_name: str):
         """Assign contractor/staff and move status to In Progress if Open."""
         if not technician_name or not technician_name.strip():
@@ -101,7 +96,6 @@ class MaintenanceRequest(BaseModel):
         self.status = self.STATUS_CANCELLED
         self.resolution_notes = f"Cancelled: {reason}".strip()
 
-    # Properties
     @property
     def is_urgent(self) -> bool:
         return self.priority == self.PRIORITY_URGENT
@@ -109,6 +103,19 @@ class MaintenanceRequest(BaseModel):
     @property
     def is_resolved(self) -> bool:
         return self.status == self.STATUS_RESOLVED
+
+    @property
+    def sla_due_date(self) -> datetime:
+        """Return the response deadline defined by the request priority."""
+        created = self.reported_date
+        if created.tzinfo is None:
+            created = created.replace(tzinfo=timezone.utc)
+
+        if self.priority == self.PRIORITY_URGENT:
+            return created + timedelta(hours=24)
+        if self.priority == self.PRIORITY_HIGH:
+            return created + timedelta(hours=48)
+        return created + timedelta(days=5)
 
     @property
     def is_overdue(self) -> bool:
@@ -121,19 +128,7 @@ class MaintenanceRequest(BaseModel):
         if self.is_resolved or self.status == self.STATUS_CANCELLED:
             return False
 
-        now = datetime.now(timezone.utc)
-        created = self.reported_date
-        if created.tzinfo is None:
-            created = created.replace(tzinfo=timezone.utc)
-
-        elapsed = now - created
-        if self.priority == self.PRIORITY_URGENT and elapsed > timedelta(hours=24):
-            return True
-        elif self.priority == self.PRIORITY_HIGH and elapsed > timedelta(hours=48):
-            return True
-        elif elapsed > timedelta(days=5):
-            return True
-        return False
+        return datetime.now(timezone.utc) > self.sla_due_date
 
     @property
     def priority_badge_class(self) -> str:
